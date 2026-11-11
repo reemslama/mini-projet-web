@@ -1,4 +1,5 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 class Profil {
   +id: UUID
   +score: Double

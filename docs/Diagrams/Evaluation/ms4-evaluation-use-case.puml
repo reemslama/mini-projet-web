@@ -1,4 +1,5 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 left to right direction
 actor Expert
 actor Entreprise

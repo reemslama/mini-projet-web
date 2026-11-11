@@ -1,4 +1,5 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 class Grille {
   +id: UUID
   +criteria: List

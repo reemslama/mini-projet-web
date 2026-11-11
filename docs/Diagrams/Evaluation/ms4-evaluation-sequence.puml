@@ -1,17 +1,21 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 actor Expert
 actor Entreprise
 participant "Frontend" as FE
 participant "API Gateway" as GW
 participant "MS4 Evaluation" as MS4
-participant "MS3 Soumissions" as MS3
-participant "MS2 Participants" as MS2
+database "MySQL" as DB
 
 Expert -> FE : note un projet
 FE -> GW : POST /api/evaluations
 GW -> MS4 : route /api/evaluations
-MS4 -> MS3 : GET /api/submissions/{id}
-MS4 -> MS2 : GET /api/...
+MS4 -> MS4 : EvaluationController.handleCreate
+MS4 -> MS4 : EvaluationService.create
+MS4 -> MS4 : EvaluationRepository.save
+MS4 -> DB : INSERT Evaluation
+DB --> MS4 : row saved
 MS4 --> GW : scores
 GW --> FE : 201
+FE --> EXP : note
 @enduml

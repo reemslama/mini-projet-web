@@ -1,15 +1,16 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 actor Developpeur
-actor Expert
-actor Entreprise
 participant "Frontend" as FE
 participant "API Gateway" as GW
 participant "MS5 Verification" as MS5
+database "PostgreSQL + pgvector" as DB
 
-Developpeur -> FE : soumet un depot
-FE -> GW : POST /api/submissions
-GW -> MS5 : submission.submitted
-MS5 -> MS5 : bac a sable
-MS5 --> GW : verdict
-GW --> FE : verdict
+MS5 -> MS5 : VerificationController.handleEvent
+MS5 -> MS5 : VerificationService.execute
+MS5 -> MS5 : TestRunner.run (bac a sable)
+MS5 -> MS5 : SimilarityService.analyze (pgvector)
+MS5 -> DB : INSERT TestResult / PlagiatAlert
+DB --> MS5 : result / alert
+MS5 --> MS3 : verdict
 @enduml

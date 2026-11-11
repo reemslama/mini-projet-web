@@ -1,12 +1,21 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 actor Developpeur
+actor Entreprise
+
 participant "Frontend" as FE
 participant "API Gateway" as GW
 participant "MS2 Participants" as MS2
+database "H2" as DB
 
 Developpeur -> FE : s’inscrit / rejoint une equipe
 FE -> GW : POST /api/developers
 GW -> MS2 : route /api/developers
+MS2 -> MS2 : DeveloperController.handleCreate
+MS2 -> MS2 : DeveloperService.create
+MS2 -> MS2 : DeveloperRepository.save
+MS2 -> DB : INSERT Developer
+DB --> MS2 : row saved
 MS2 --> GW : 201
 GW --> FE : 201
 FE --> DEV : inscrit

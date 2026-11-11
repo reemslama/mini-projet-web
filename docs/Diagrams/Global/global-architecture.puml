@@ -1,5 +1,5 @@
 @startuml
-skinparam backgroundColor #edf2f4
+skinparam backgroundColor #FFFFFF
 left to right direction
 actor "Client web" as Client
 actor "Entreprise" as ENT

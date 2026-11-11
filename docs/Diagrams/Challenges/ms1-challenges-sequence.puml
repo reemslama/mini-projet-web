@@ -1,12 +1,23 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 actor Entreprise
+actor Developpeur
+actor Expert
+actor Admin
+
 participant "Frontend" as FE
 participant "API Gateway" as GW
 participant "MS1 Challenges" as MS1
+database "H2" as DB
 
 Entreprise -> FE : publie un defi
 FE -> GW : POST /api/challenges
 GW -> MS1 : route /api/challenges
+MS1 -> MS1 : ChallengeController.handleCreate
+MS1 -> MS1 : ChallengeService.create
+MS1 -> MS1 : ChallengeRepository.save
+MS1 -> DB : INSERT Challenge
+DB --> MS1 : row saved
 MS1 --> GW : 201
 GW --> FE : 201
 FE --> ENT : defi publie

@@ -1,16 +1,25 @@
 @startuml
+skinparam backgroundColor #FFFFFF
 actor Developpeur
 participant "Frontend" as FE
 participant "API Gateway" as GW
 participant "MS3 Soumissions" as MS3
+database "H2" as DB
 participant "MS5 Verification" as MS5
 
 Developpeur -> FE : soumet un depot
 FE -> GW : POST /api/submissions
 GW -> MS3 : route /api/submissions
-MS3 --> GW : 201
-GW --> FE : 201
-MS3 -> MS5 : submission.submitted
-MS5 --> MS3 : verification.completed
-MS3 --> FE : verdict
+MS3 -> MS3 : SubmissionController.handleCreate
+MS3 -> MS3 : SubmissionService.create
+MS3 -> MS3 : SubmissionRepository.save
+MS3 -> DB : INSERT Submission
+DB --> MS3 : row saved
+MS3 -> MS5 : submission.submitted (event async)
+MS5 -> MS5 : VerificationService.execute
+MS5 -> MS5 : TestRunner.run (bac a sable)
+MS5 --> MS3 : verdict
+MS3 --> GW : ...
+GW --> FE : ...
+FE --> DEV : verdict
 @enduml
