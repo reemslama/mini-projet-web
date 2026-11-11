@@ -1,0 +1,20 @@
+@startuml
+left to right direction
+actor Entreprise
+actor Developpeur
+actor Expert
+actor Admin
+
+package "MS1 Challenges" {
+  usecase "Publier un defi" as UC1
+  usecase "Gerer le cycle de vie du defi" as UC2
+  usecase "Gerer les primes" as UC3
+}
+
+Entreprise --> UC1
+Entreprise --> UC2
+Entreprise --> UC3
+Developpeur --> UC2 : soumission
+Expert --> UC2 : notation
+Admin --> UC2
+@enduml

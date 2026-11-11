@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/repos/.+/commits/.+"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "sha": "9f3c1a2b4c5d6e7f8091a2b3c4d5e6f708192a3b",
+      "commit": {
+        "message": "chore: submission snapshot (wiremock)",
+        "author": {
+          "name": "En Lice Mock",
+          "date": "2026-11-11T10:15:30Z"
+        }
+      }
+    }
+  }
+}

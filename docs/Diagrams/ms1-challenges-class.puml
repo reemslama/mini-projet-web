@@ -1,0 +1,25 @@
+@startuml
+class Defi {
+  +id: UUID
+  +title: String
+  +spec: String
+  +status: String
+  +budget: BigDecimal
+  +startDate: LocalDate
+  +endDate: LocalDate
+}
+
+class Prime {
+  +id: UUID
+  +amount: BigDecimal
+  +rank: int
+}
+
+class AcceptanceCriteria {
+  +id: UUID
+  +content: String
+}
+
+Defi --> AcceptanceCriteria : contient
+Defi --> Prime : reference
+@enduml

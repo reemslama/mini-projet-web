@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+actor Entreprise
+actor Developpeur
+actor Expert
+actor Admin
+
+package "MS2 Participants" {
+  usecase "Inscrire un developpeur" as UC1
+  usecase "Creer une equipe" as UC2
+  usecase "Soumettre une candidature" as UC3
+}
+
+Entreprise --> UC3 : challenge
+Developpeur --> UC1
+Developpeur --> UC3
+Admin --> UC1
+@enduml

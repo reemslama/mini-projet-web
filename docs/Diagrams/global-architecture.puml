@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #edf2f4
+left to right direction
+actor "Client web" as Client
+actor "Entreprise" as ENT
+actor "Developpeur / Equipe" as DEV
+actor "Expert" as EXP
+actor "Admin" as ADM
+
+package "Infrastructure" {
+  boundary "API Gateway" as GW
+  control "Eureka" as EUREKA
+  database "Keycloak" as KC
+  database "RabbitMQ" as RMQ
+}
+
+package "Microservices" {
+  component "MS1 Challenges" as MS1
+  component "MS2 Participants" as MS2
+  component "MS3 Soumissions" as MS3
+  component "MS4 Evaluation" as MS4
+  component "MS5 Verification" as MS5
+  component "MS6 Reputation" as MS6
+}
+
+Client --> GW : HTTP /{service}/api/**
+GW --> MS1 : REST /api/challenges
+GW --> MS2 : REST /api/...
+GW --> MS3 : REST /api/...
+GW --> MS4 : REST /api/...
+GW --> MS5 : REST /api/...
+GW --> MS6 : REST /api/...
+ENT --> GW : defi
+DEV --> GW : soumission
+EXP --> GW : notation
+ADM --> GW : moderation
+MS1 --> MS2
+MS3 --> MS5
+MS5 --> MS3
+MS5 --> MS1
+MS5 --> MS4
+MS4 --> MS3
+MS4 --> MS2
+MS1 --> MS6
+MS2 --> MS6
+MS3 --> MS6
+EUREKA --> GW : decouverte
+KC --> GW : validation JWT
+RMQ --> MS5 : evenement submission.submitted
+RMQ --> MS4 : evenement judging.completed
+RMQ --> MS3 : evenement verification.completed
+RMQ --> MS2 : evenement application.registered
+RMQ --> MS1 : evenement challenge.published
+RMQ --> MS6 : evenement reputation.events
+DC --> MS5 : conteneur isole
+@enduml

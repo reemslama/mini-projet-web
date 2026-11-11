@@ -1,0 +1,13 @@
+@startuml
+actor Developpeur
+participant "Frontend" as FE
+participant "API Gateway" as GW
+participant "MS2 Participants" as MS2
+
+Developpeur -> FE : s’inscrit / rejoint une equipe
+FE -> GW : POST /api/developers
+GW -> MS2 : route /api/developers
+MS2 --> GW : 201
+GW --> FE : 201
+FE --> DEV : inscrit
+@enduml

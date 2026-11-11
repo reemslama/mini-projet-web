@@ -1,0 +1,21 @@
+@startuml
+class Developpeur {
+  +id: UUID
+  +name: String
+  +skills: List
+}
+
+class Equipe {
+  +id: UUID
+  +name: String
+}
+
+class Candidature {
+  +id: UUID
+  +challengeId: UUID
+  +status: String
+}
+
+Developpeur "1" --> "0..*" Candidature : soumet
+Equipe "1" --> "0..*" Candidature : soumet
+@enduml

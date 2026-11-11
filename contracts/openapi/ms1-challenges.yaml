@@ -1,0 +1,215 @@
+openapi: 3.0.3
+info:
+  title: En Lice · MS1 Challenges
+  version: 1.0.0
+  description: Espace entreprise, défis, critères d'acceptation, primes, catalogue.
+servers:
+  - url: http://localhost:8080/ms1   # via la Gateway
+  - url: http://localhost:8081       # accès direct (dev)
+tags:
+  - name: Challenges
+paths:
+  /api/challenges:
+    post:
+      tags: [Challenges]
+      summary: Créer un défi (brouillon)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChallengeCreate' }
+      responses:
+        '201':
+          description: Défi créé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Challenge' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    get:
+      tags: [Challenges]
+      summary: Catalogue / recherche de défis
+      parameters:
+        - { name: tag,      in: query, schema: { type: string } }
+        - { name: status,   in: query, schema: { $ref: '#/components/schemas/ChallengeStatus' } }
+        - { name: minPrize, in: query, schema: { type: number, format: double } }
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Page de défis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content: { type: array, items: { $ref: '#/components/schemas/Challenge' } }
+                  totalElements: { type: integer }
+                  totalPages: { type: integer }
+                  number: { type: integer }
+                  size: { type: integer }
+  /api/challenges/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Challenges]
+      summary: Détail d'un défi
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Challenge' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Challenges]
+      summary: Mettre à jour un défi (propriétaire, statut DRAFT)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChallengeCreate' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Challenge' }
+  /api/challenges/{id}/publish:
+    post:
+      tags: [Challenges]
+      summary: Publier un défi (déclenche challenge.published)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Challenge' }
+        '409': { description: Défi déjà publié ou incomplet }
+  /api/challenges/{id}/acceptance-criteria:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Challenges]
+      summary: Lire la spec de tests d'acceptation (appelée par MS5)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AcceptanceCriterion' }
+    put:
+      tags: [Challenges]
+      summary: Définir la spec de tests d'acceptation
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { $ref: '#/components/schemas/AcceptanceCriterion' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AcceptanceCriterion' }
+  /api/challenges/{id}/prizes:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Challenges]
+      summary: Lire les primes (top 3)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Prize' }
+    put:
+      tags: [Challenges]
+      summary: Définir les primes (top 3)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { $ref: '#/components/schemas/Prize' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Prize' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    BadRequest:
+      description: Requête invalide
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Accès refusé
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+  schemas:
+    ChallengeStatus:
+      type: string
+      enum: [DRAFT, PUBLISHED, IN_PROGRESS, JUDGING, CLOSED, CANCELLED]
+    ChallengeCreate:
+      type: object
+      required: [title, description, enterpriseId, deadline]
+      properties:
+        title: { type: string, maxLength: 140 }
+        description: { type: string }
+        enterpriseId: { type: string, format: uuid }
+        deadline: { type: string, format: date-time }
+        tags: { type: array, items: { type: string } }
+    Challenge:
+      allOf:
+        - $ref: '#/components/schemas/ChallengeCreate'
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            status: { $ref: '#/components/schemas/ChallengeStatus' }
+            createdAt: { type: string, format: date-time }
+            publishedAt: { type: string, format: date-time, nullable: true }
+    AcceptanceCriterion:
+      type: object
+      required: [id, description, weight]
+      properties:
+        id: { type: string }
+        description: { type: string }
+        weight: { type: number, format: double, minimum: 0, maximum: 1 }
+        testCommand: { type: string, description: "Commande exécutée dans le bac à sable (optionnel)" }
+    Prize:
+      type: object
+      required: [rank, amount, currency]
+      properties:
+        rank: { type: integer, minimum: 1, maximum: 3 }
+        amount: { type: number, format: double }
+        currency: { type: string, default: EUR }
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }

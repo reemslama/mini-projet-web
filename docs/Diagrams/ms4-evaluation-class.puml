@@ -1,0 +1,21 @@
+@startuml
+class Grille {
+  +id: UUID
+  +criteria: List
+  +weights: Map
+}
+
+class Jury {
+  +id: UUID
+  +members: List
+}
+
+class Evaluation {
+  +id: UUID
+  +score: BigDecimal
+  +comment: String
+}
+
+Grille --> Evaluation : porte
+Jury --> Evaluation : juge
+@enduml

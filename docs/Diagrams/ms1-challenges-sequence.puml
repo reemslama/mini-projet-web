@@ -1,0 +1,13 @@
+@startuml
+actor Entreprise
+participant "Frontend" as FE
+participant "API Gateway" as GW
+participant "MS1 Challenges" as MS1
+
+Entreprise -> FE : publie un defi
+FE -> GW : POST /api/challenges
+GW -> MS1 : route /api/challenges
+MS1 --> GW : 201
+GW --> FE : 201
+FE --> ENT : defi publie
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+actor Developpeur
+participant "Frontend" as FE
+participant "API Gateway" as GW
+participant "MS6 Reputation" as MS6
+
+Developpeur -> FE : consulte son profil
+FE -> GW : GET /api/developers/{id}/reputation
+GW -> MS6 : route /api/developers/{id}/reputation
+MS6 --> GW : profil
+GW --> FE : 200
+@enduml

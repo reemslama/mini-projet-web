@@ -1,0 +1,17 @@
+@startuml
+class Soumission {
+  +id: UUID
+  +repoUrl: String
+  +commitSha: String
+  +status: String
+}
+
+class Verdict {
+  +id: UUID
+  +result: String
+  +tests: List
+  +logs: String
+}
+
+Soumission --> Verdict : produit
+@enduml

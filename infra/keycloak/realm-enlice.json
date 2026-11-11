@@ -1,0 +1,148 @@
+{
+  "realm": "enlice",
+  "enabled": true,
+  "displayName": "En Lice",
+  "displayNameHtml": "<strong>En Lice</strong> — défis d'ingénierie",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["fr", "en"],
+  "defaultLocale": "fr",
+  "roles": {
+    "realm": [
+      { "name": "DEVELOPER", "description": "Développeur participant aux défis" },
+      { "name": "ENTERPRISE", "description": "Entreprise publiant des défis" },
+      { "name": "EXPERT", "description": "Expert membre de jurys" },
+      { "name": "ADMIN", "description": "Administrateur de la plateforme" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "enlice-frontend",
+      "name": "En Lice — application web",
+      "description": "SPA Angular (Authorization Code + PKCE)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*##http://localhost:3000/*",
+        "display.on.consent.screen": "false"
+      },
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "enlice-cli",
+      "name": "En Lice — tests & scripts",
+      "description": "Client public pour obtenir des jetons via curl (Resource Owner Password)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [],
+      "webOrigins": [],
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "enlice-gateway",
+      "name": "En Lice — passerelle",
+      "description": "Resource server bearer-only (validation des JWT)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true
+    }
+  ],
+  "users": [
+    {
+      "username": "dev",
+      "enabled": true,
+      "email": "dev@enlice.local",
+      "emailVerified": true,
+      "firstName": "Dev",
+      "lastName": "Développeur",
+      "credentials": [
+        { "type": "password", "value": "dev123", "temporary": false }
+      ],
+      "realmRoles": ["DEVELOPER"]
+    },
+    {
+      "username": "dev2",
+      "enabled": true,
+      "email": "dev2@enlice.local",
+      "emailVerified": true,
+      "firstName": "Samia",
+      "lastName": "Benali",
+      "credentials": [
+        { "type": "password", "value": "dev123", "temporary": false }
+      ],
+      "realmRoles": ["DEVELOPER"]
+    },
+    {
+      "username": "enterprise",
+      "enabled": true,
+      "email": "enterprise@enlice.local",
+      "emailVerified": true,
+      "firstName": "Atlas",
+      "lastName": "Industries",
+      "credentials": [
+        { "type": "password", "value": "enterprise123", "temporary": false }
+      ],
+      "realmRoles": ["ENTERPRISE"]
+    },
+    {
+      "username": "expert",
+      "enabled": true,
+      "email": "expert@enlice.local",
+      "emailVerified": true,
+      "firstName": "Nadia",
+      "lastName": "Cherif",
+      "credentials": [
+        { "type": "password", "value": "expert123", "temporary": false }
+      ],
+      "realmRoles": ["EXPERT"]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@enlice.local",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "En Lice",
+      "credentials": [
+        { "type": "password", "value": "admin123", "temporary": false }
+      ],
+      "realmRoles": ["ADMIN"]
+    }
+  ]
+}

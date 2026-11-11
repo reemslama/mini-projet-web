@@ -1,0 +1,20 @@
+@startuml
+class Profil {
+  +id: UUID
+  +score: Double
+  +badges: List
+}
+
+class Badge {
+  +id: UUID
+  +code: String
+}
+
+class Classement {
+  +rank: int
+  +period: String
+}
+
+Profil --> Badge : detient
+Profil --> Classement : genere
+@enduml

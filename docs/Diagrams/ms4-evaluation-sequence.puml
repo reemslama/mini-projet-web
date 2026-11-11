@@ -1,0 +1,17 @@
+@startuml
+actor Expert
+actor Entreprise
+participant "Frontend" as FE
+participant "API Gateway" as GW
+participant "MS4 Evaluation" as MS4
+participant "MS3 Soumissions" as MS3
+participant "MS2 Participants" as MS2
+
+Expert -> FE : note un projet
+FE -> GW : POST /api/evaluations
+GW -> MS4 : route /api/evaluations
+MS4 -> MS3 : GET /api/submissions/{id}
+MS4 -> MS2 : GET /api/...
+MS4 --> GW : scores
+GW --> FE : 201
+@enduml

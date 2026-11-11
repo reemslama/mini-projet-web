@@ -1,0 +1,21 @@
+@startuml
+class Soumission {
+  +id: UUID
+  +repoUrl: String
+  +status: String
+}
+
+class TestResult {
+  +id: UUID
+  +result: String
+  +logs: String
+}
+
+class PlagiatAlert {
+  +id: UUID
+  +similarity: Double
+}
+
+Soumission --> TestResult : produit
+Soumission --> PlagiatAlert : declenche
+@enduml

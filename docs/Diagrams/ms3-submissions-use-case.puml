@@ -1,0 +1,15 @@
+@startuml
+left to right direction
+actor Developpeur
+actor Expert
+actor Entreprise
+
+package "MS3 Soumissions" {
+  usecase "Soumettre une soumission" as UC1
+  usecase "Consulter le verdict" as UC2
+  usecase "Mettre a jour le verdict" as UC3
+}
+
+Developpeur --> UC1
+Expert --> UC3
+@enduml

@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: En Lice · MS5 Vérification
+  version: 1.0.0
+  description: >
+    Technologie avancée : exécution des tests d'acceptation en bac à sable,
+    anti-plagiat par similarité vectorielle (pgvector), IA d'appoint.
+servers:
+  - url: http://localhost:8080/ms5
+  - url: http://localhost:8085
+paths:
+  /api/verifications:
+    post:
+      tags: [Verifications]
+      summary: Lancer une vérification (manuel ou rejeu)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VerificationRequest' }
+      responses:
+        '202':
+          description: Vérification acceptée (asynchrone)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Verification' }
+  /api/verifications/{id}:
+    get:
+      tags: [Verifications]
+      summary: État / résultat d'une vérification
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Verification' }
+        '404': { description: Introuvable }
+  /api/verifications/{id}/logs:
+    get:
+      tags: [Verifications]
+      summary: Logs d'exécution (texte brut)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            text/plain:
+              schema: { type: string }
+  /api/similarity/analyze:
+    post:
+      tags: [Similarity]
+      summary: Analyser la similarité d'une soumission vs les autres (pgvector)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [submissionId, challengeId]
+              properties:
+                submissionId: { type: string, format: uuid }
+                challengeId: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SimilarityReport' }
+  /api/similarity/{submissionId}:
+    get:
+      tags: [Similarity]
+      summary: Rapport de similarité déjà calculé
+      parameters:
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SimilarityReport' }
+  /api/ai/summarize/{submissionId}:
+    post:
+      tags: [AI]
+      summary: Résumé IA d'une soumission pour le jury (amélioration, non bloquant)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submissionId: { type: string, format: uuid }
+                  summary: { type: string }
+                  model: { type: string }
+                  generatedAt: { type: string, format: date-time }
+        '503': { description: Service IA indisponible — la plateforme reste utilisable }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    VerificationRequest:
+      type: object
+      required: [submissionId]
+      properties:
+        submissionId: { type: string, format: uuid }
+        challengeId: { type: string, format: uuid }
+        repoUrl: { type: string, format: uri }
+        commitSha: { type: string }
+        testCommand: { type: string }
+    Verification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        submissionId: { type: string, format: uuid }
+        status: { type: string, enum: [QUEUED, RUNNING, COMPLETED, ERROR] }
+        result: { type: string, enum: [PASS, FAIL], nullable: true }
+        passed: { type: integer }
+        failed: { type: integer }
+        total: { type: integer }
+        coverage: { type: number, format: double, nullable: true }
+        durationMs: { type: integer }
+        sandboxImage: { type: string }
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time, nullable: true }
+    SimilarityReport:
+      type: object
+      properties:
+        submissionId: { type: string, format: uuid }
+        challengeId: { type: string, format: uuid }
+        maxSimilarity: { type: number, format: double, description: "Similarité cosinus 0..1" }
+        flagged: { type: boolean }
+        matches:
+          type: array
+          items:
+            type: object
+            properties:
+              otherSubmissionId: { type: string, format: uuid }
+              similarity: { type: number, format: double }
+        analyzedAt: { type: string, format: date-time }

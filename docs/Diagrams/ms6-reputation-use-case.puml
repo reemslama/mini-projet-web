@@ -1,0 +1,15 @@
+@startuml
+left to right direction
+actor Developpeur
+actor Expert
+actor Admin
+
+package "MS6 Reputation" {
+  usecase "Calculer la reputation" as UC1
+  usecase "Attribuer un badge" as UC2
+  usecase "Classer les developpeurs" as UC3
+}
+
+Developpeur --> UC1
+Expert --> UC2
+@enduml

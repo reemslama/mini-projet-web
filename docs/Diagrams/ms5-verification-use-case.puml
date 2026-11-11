@@ -1,0 +1,15 @@
+@startuml
+left to right direction
+actor Developpeur
+actor Expert
+actor Entreprise
+
+package "MS5 Verification" {
+  usecase "Executer les tests en bac a sable" as UC1
+  usecase "Detecter le plagiat" as UC2
+  usecase "Generer le resume IA" as UC3
+}
+
+Developpeur --> UC1
+Expert --> UC3
+@enduml

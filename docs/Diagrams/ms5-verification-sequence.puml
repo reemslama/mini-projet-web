@@ -1,0 +1,15 @@
+@startuml
+actor Developpeur
+actor Expert
+actor Entreprise
+participant "Frontend" as FE
+participant "API Gateway" as GW
+participant "MS5 Verification" as MS5
+
+Developpeur -> FE : soumet un depot
+FE -> GW : POST /api/submissions
+GW -> MS5 : submission.submitted
+MS5 -> MS5 : bac a sable
+MS5 --> GW : verdict
+GW --> FE : verdict
+@enduml

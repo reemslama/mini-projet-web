@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+actor Expert
+actor Entreprise
+
+package "MS4 Evaluation" {
+  usecase "Creer une grille" as UC1
+  usecase "Ajouter un expert au jury" as UC2
+  usecase "Declarer les gagnants" as UC3
+}
+
+Expert --> UC2
+Entreprise --> UC3
+@enduml
