@@ -11,11 +11,11 @@ contrats (`contracts/`).
 Une entreprise a un besoin logiciel ponctuel : un logiciel sur mesure, sans recruter d equipe, sans
 faire appel a des freelances au forfait. Arène met en place un cadre de challenge : l’entreprise
 publie un defi avec cahier des charges, tests d’acceptation et prime ; les developpeurs soumettent
-un depot GitHub ; un moteur de verification filtre automatiquement ; les experts notent et
-designent les gagnants.
+un depot GitHub ; un moteur de verification execute les tests ; les experts notent et designent les
+gagnants.
 
-Valeur metier : reduire le coût d’acces a du logiciel sur mesure, et offrir aux developpeurs des
-projets reels, verifies et valorisants.
+Valeur metier : reduire le coût d’accès à du logiciel sur mesure et offrir aux developpeurs des
+projets réels, vérifiés et valorisants.
 
 ## 2. Acteurs et fonctionnalités
 
@@ -28,10 +28,10 @@ Acteurs :
 Fonctionnalités principales :
 - Publication de defis (spec, critères, dates, cycle de vie, budget, primes).
 - Inscription et candidatures.
-- Depot GitHub avec commit figé, controle de date limite.
+- Depot GitHub avec commit figé, controle de la date limite.
 - Verification : tests en bac a sable, anti-plagiat, IA d’appoint.
 - Notation, classement, designation des gagnants.
-- Securite : authentification via Keycloak, autorisations par roles.
+- Securisation : authentification via Keycloak, autorisations par roles.
 
 ## 3. Découpage en microservices
 
@@ -46,8 +46,8 @@ Fonctionnalités principales :
 
 ## 4. Données gérées par service
 
-Chaque service possède sa propre base : aucune cle étrangère inter-services. Les references
-croisees passent par identifiant et par evenements.
+Une base par service, aucune cle étrangère inter-services. Les references croisees passent par
+identifiant et par evenements.
 
 ## 5. Interactions entre services
 
@@ -62,100 +62,12 @@ Voir `docs/Diagrams/` (diagramme global) et le deck (`docs/Presentation/` slide 
 ## 7. Points de la presentation, avec details
 
 ### 7.1 Idee et besoin
-### 7.2 Utilisateurs
-### 7.3 Scénario de bout en bout
-### 7.4 Périmètre MoSCoW
-### 7.5 Architecture globale
-### 7.6 Microservices
-### 7.7 Stratégie de donnees
-### 7.8 Communication synchrone
-### 7.9 Communication asynchrone
-### 7.10 Technologie avancée MS5
-### 7.11 Gateway, securite et configuration
-### 7.12 Contrats d’API
-### 7.13 Stack technique
-### 7.14 Répartition des tâches
-### 7.15 Pilotage et organisation Git
-### 7.16 Planning et risques
-
-## 8. Conclusion
-
----
-
-Hmm, that's a skeleton with headings only. The user wanted the document to contain the presentation parts with more detail. Let me write actual content for these sections rather than bare headings. But it's already long. Let me write substantive but concise content for each.
-
-Actually, let me write a fuller version — it's the key deliverable. Let me rewrite the file with real content.
-
-Let me write it properly now.</think><tool_call>write<arg_key>content</arg_key><arg_value># Document technique — Arène
-
-Plateforme de hackathons et de bounties — module **Applications Web Distribuées · MT-41**.
-
-Ce document reprend les parties de la presentation de validation (seance 4) avec davantage de
-details. Il accompagne le deck (`docs/Presentation/`), les diagrammes (`docs/Diagrams/`) et les
-contrats (`contracts/`).
-
-## 1. Sujet et contexte
-
-Une entreprise a un besoin logiciel ponctuel : un logiciel sur mesure, sans recruter d equipe, sans
-faire appel a des freelances au forfait. Arène met en place un cadre de challenge : l’entreprise
-publie un defi avec cahier des charges, tests d’acceptation et prime ; les developpeurs soumettent
-un depot GitHub ; un moteur de verification execute les tests ; les experts notent et designent les
-gagnants.
-
-Valeur metier : reduire le coût d’accès à du logiciel sur mesure et offrir aux developpeurs des
-projets réels, vérifiés et valorisants.
-
-## 2. Acteurs et fonctionnalités
-
-Acteurs :
-- **Entreprise** : publie un defi, fixe le budget, les dates, les tests et la prime.
-- **Developpeur / equipe** : s’inscrit, soumet un depot, repond aux tests, est note.
-- **Expert** : juge les soumissions, attribue les scores.
-- **Admin** : modération, litiges, comptes.
-
-Fonctionnalités principales :
-- Publication de defis (spec, critères, dates, cycle de vie, budget, primes).
-- Inscription et candidatures.
-- Depot GitHub avec commit figé, controle de la date limite.
-- Verification : tests en bac à sable, anti-plagiat, IA d’appoint.
-- Notation, classement, designation des gagnants.
-- Securisation : authentification via Keycloak, autorisations par roles.
-
-## 3. Découpage en microservices
-
-| Service | Responsabilité | Base de données |
-|---|---|---|
-| MS1 · Challenges | Defis, spec, critères, primes, catalogue | H2 |
-| MS2 · Participants | Developpeurs, equipes, candidatures | H2 |
-| MS3 · Soumissions | Depot, soumission, verdict, date limite | H2 |
-| MS4 · Évaluation | Jury, grilles, scores, classement, gagnants | MySQL |
-| MS5 · Vérification | Bac à sable, anti-plagiat, IA d’appoint | PostgreSQL + pgvector |
-| MS6 · Réputation | Profils, badges, classements | H2 |
-
-## 4. Données gérées par service
-
-Une base par service, aucune cle étrangère inter-services. Les references croisees passent par
-identifiant et par evenements.
-
-## 5. Interactions entre services
-
-- Synchrone : OpenFeign via l’API Gateway, decouverte via Eureka.
-- Asynchrone : RabbitMQ via Spring Cloud Stream.
-- Sécurité : JWT valide via Keycloak, chaque service valide le jeton.
-
-## 6. Diagramme d’architecture globale
-
-Voir `docs/Diagrams/` (diagramme global) et le slide 7 du deck.
-
-## 7. Détails par grandes parties de la presentation
-
-### 7.1 Idée et besoin
 Le probleme : un besoin logiciel ponctuel, sans equipe interne ni freelance. La solution : un
-challenge vérifiable. Les acteurs et cas d’utilisation sont definis.
+challenge verifie. Les acteurs et cas d’utilisation sont definis.
 
 ### 7.2 Utilisateurs
 Les quatre roles (entreprise, developpeur/equipe, expert, admin) correspondent aux besoins
-metiers identifiés.
+metiers identifies.
 
 ### 7.3 Scénario de bout en bout
 Publication → inscription → depot → verification → notation → gagnants.
@@ -168,9 +80,9 @@ Eureka. Should / Could / Won’t.
 Diagramme, services, Gateway, securite, donnees, communications.
 
 ### 7.6 Microservices
-Chaque service est autonome, avec sa base et ses responsabilités.
+Chaque service est autonome, avec sa base et ses responsabilites.
 
-### 7.7 Stratégie de donnees
+### 7.7 Strategie de donnees
 Une base par service.
 
 ### 7.8 Communication synchrone
@@ -186,7 +98,11 @@ Bac a sable, anti-plagiat (pgvector), IA d’appoint.
 Keycloak en infrastructure, pas de microservice d’auth.
 
 ### 7.12 Contrats d’API
-Endpoints, codes de reponse, evenements.
+39 endpoints repartis sur les six microservices, gelés en S4. Specs OpenAPI 3.0.3 dans
+`contracts/` (`ms1-challenges.openapi.yaml` … `ms6-reputation.openapi.yaml`). Conventions :
+base path `/api`, JSON, `Authorization: Bearer <JWT>`, enveloppe `ErrorResponse`, pagination
+`Page<T>`. Catalogue d’evenements RabbitMQ et `docker-compose.yml` : voir le document
+source `Arène-contrats-et-deploiement.md`.
 
 ### 7.13 Stack technique
 Java, Spring, Gateway, Eureka, Keycloak, OpenFeign, RabbitMQ, bases, Docker, Angular.
@@ -200,7 +116,26 @@ GitHub Projects, milestones, epices, Git branching.
 ### 7.16 Planning et risques
 Roadmap S4 a S10, risques et mitigations.
 
-## 8. Conclusion
+## 8. Couche IA / LLM (amélioration optionnelle)
 
-Conception S4 validée : architecture coherent, contrats definis, communication prete, securite
+Le coeur de la plateforme fonctionne **sans IA**. La couche LLM est une amélioration optionnelle
+dans le service avancé (MS5 · Vérification) :
+
+| Capacité | Service | Usage | Validation |
+|---|---|---|---|
+| Résumé de soumission pour le jury | MS5 (LLM) | lit la soumission (MS3), transmis au jury (MS4) | Oui |
+| Rédaction de tests d’acceptation | MS5 (LLM) | génère un draft de spec de tests → **humain validé** | Oui |
+| Matching expert ↔ défi | MS5 (embeddings k-NN + LLM) | lit MS2 (experts) + MS1 (défis) | Oui |
+| Détection conflit d’intérêt | MS5 (embeddings) | lit MS2 + MS4 | Oui |
+
+Ligne de defense : « Nous utilisons le LLM là où il ajoute de la valeur (résumés, rédaction de
+tests), et des algorithmes deterministes ailleurs (execution des tests, similarité). Le coeur de la
+plateforme ne depend jamais de l’IA. »
+
+Dechet : `docker compose stop ms5-verification` → la plateforme reste utilisable, la verification
+reste manuelle.
+
+## 9. Conclusion
+
+Conception S4 validee : architecture coherente, contrats definis, communication prete, securite
 prete, donnees prete.

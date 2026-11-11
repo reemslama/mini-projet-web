@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: Arène · MS3 Soumissions
+  version: 1.0.0
+  description: Dépôt GitHub, commit figé, artefacts, cycle de vie, contrôle de date limite.
+servers:
+  - url: http://localhost:8080/ms3
+  - url: http://localhost:8083
+paths:
+  /api/submissions:
+    post:
+      tags: [Submissions]
+      summary: Créer une soumission (brouillon)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmissionCreate' }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submission' }
+    get:
+      tags: [Submissions]
+      summary: Lister les soumissions d'un défi
+      parameters:
+        - { name: challengeId, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/SubmissionStatus' } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Submission' }
+  /api/submissions/{id}:
+    get:
+      tags: [Submissions]
+      summary: Détail d'une soumission
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submission' }
+        '404': { description: Introuvable }
+  /api/submissions/{id}/submit:
+    post:
+      tags: [Submissions]
+      summary: Soumettre définitivement (fige le commit, vérifie la date limite, émet submission.submitted)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Submission' }
+        '409': { description: Date limite dépassée ou déjà soumise }
+  /api/submissions/{id}/verdict:
+    get:
+      tags: [Submissions]
+      summary: Lire le verdict de vérification
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Verdict' }
+        '404': { description: Pas encore de verdict }
+    put:
+      tags: [Submissions]
+      summary: Enregistrer le verdict (appel interne de MS5)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Verdict' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Verdict' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    SubmissionStatus:
+      type: string
+      enum: [DRAFT, SUBMITTED, VERIFYING, PASSED, REJECTED, WITHDRAWN]
+    SubmissionCreate:
+      type: object
+      required: [challengeId, applicantId, repoUrl]
+      properties:
+        challengeId: { type: string, format: uuid }
+        applicantId: { type: string, format: uuid }
+        repoUrl: { type: string, format: uri, description: "Dépôt GitHub public" }
+        branch: { type: string, default: main }
+    Submission:
+      allOf:
+        - $ref: '#/components/schemas/SubmissionCreate'
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            status: { $ref: '#/components/schemas/SubmissionStatus' }
+            commitSha: { type: string, nullable: true, description: "Commit figé à la soumission" }
+            submittedAt: { type: string, format: date-time, nullable: true }
+    Verdict:
+      type: object
+      properties:
+        submissionId: { type: string, format: uuid }
+        result: { type: string, enum: [PASS, FAIL] }
+        passed: { type: integer }
+        failed: { type: integer }
+        total: { type: integer }
+        coverage: { type: number, format: double, nullable: true }
+        logsUrl: { type: string, format: uri }
+        verifiedAt: { type: string, format: date-time }
