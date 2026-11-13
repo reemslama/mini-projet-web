@@ -1,0 +1,74 @@
+
+@startuml
+title MS5 - Anti-Plagiarism Detection Pipeline
+
+autonumber
+
+actor "Verification Service" as MS5
+participant "MS3 - Submissions" as MS3
+participant "GitHub Repository" as GitHub
+participant "Code Preprocessor" as Prep
+participant "Gemma Embedding Model" as Gemma
+database "PostgreSQL + pgvector" as DB
+participant "Similarity Analyzer" as Analyzer
+queue "RabbitMQ" as MQ
+participant "MS4 - Evaluation" as MS4
+
+== Submission Event ==
+
+MS3 -> MQ: submission.submitted
+MQ -> MS5: Consume event\n(submissionId, repoUrl, commitSha)
+
+== Retrieve Source Code ==
+
+MS5 -> MS3: GET /api/submissions/{id}
+MS3 --> MS5: Submission metadata
+
+MS5 -> GitHub: Clone repository\nat fixed commitSha
+GitHub --> MS5: Source code files
+
+== Code Processing ==
+
+MS5 -> Prep: Extract relevant source files
+Prep -> Prep: Remove comments and irrelevant files
+Prep -> Prep: Normalize code and split into chunks
+Prep --> MS5: Code chunks + candidate metadata
+
+== Generate Embeddings ==
+
+loop For each code chunk and candidate
+    MS5 -> Gemma: Generate embedding(text)
+    Gemma --> MS5: Vector [e1, e2, ..., en]
+end
+
+== Store Vectors ==
+
+MS5 -> DB: INSERT submission embedding\n(vector, submissionId, chunkId)
+DB --> MS5: Embeddings stored
+
+== Similarity Comparison ==
+
+MS5 -> DB: Query candidate vectors\nusing pgvector cosine distance
+DB --> MS5: Similarity scores + matching IDs
+
+MS5 -> Analyzer: Compare scores against threshold
+Analyzer -> Analyzer: Aggregate matching chunks\nCalculate similarity percentage
+Analyzer --> MS5: Similarity report
+
+== Persist Results ==
+
+MS5 -> DB: Store PlagiatAlert\n(similarity, matched submissions)
+DB --> MS5: Alert persisted
+
+alt Similarity exceeds threshold
+    MS5 -> MQ: Publish similarity.flagged
+    MQ -> MS4: similarity.flagged
+    note right of MS4
+      Jury sees plagiarism alert
+      before evaluation.
+    end note
+else No suspicious similarity
+    MS5 -> MS5: Mark analysis as clear
+end
+
+@enduml
