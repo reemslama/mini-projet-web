@@ -1,22 +1,100 @@
 @startuml
+title MS2 · Participants — Modèle de classes (S4)
+
 skinparam backgroundColor #FFFFFF
-class Developpeur {
-  +id: UUID
-  +name: String
-  +skills: List
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ClassBackgroundColor #F7F9FC
+skinparam ClassBorderColor #2E5A88
+skinparam ArrowColor #2E5A88
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+
+enum ApplicantType <<enumeration>> {
+  DEVELOPER
+  TEAM
 }
 
-class Equipe {
-  +id: UUID
-  +name: String
+enum ApplicationStatus <<enumeration>> {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
 }
 
-class Candidature {
+class Developer <<aggregate>> {
+  +id: UUID
+  +keycloakId: String
+  +displayName: String
+  +email: String
+  +skills: List~String~
+  +createdAt: LocalDateTime
+  --
+  +create(DeveloperCreate data): Developer {static}
+  +findByKeycloakId(String id): Developer {static}
+  +updateSkills(List~String~ skills): void
+  +isSkilledIn(String skill): boolean
+}
+
+class Team <<aggregate>> {
+  +id: UUID
+  +name: String
+  +ownerId: UUID
+  +memberIds: List~UUID~
+  --
+  +create(TeamCreate data): Team {static}
+  +addMember(UUID developerId): void
+  +removeMember(UUID developerId): void
+  +isMember(UUID developerId): boolean
+  +size(): int
+}
+
+class Application <<entity>> {
   +id: UUID
   +challengeId: UUID
+  +applicantType: ApplicantType
+  +applicantId: UUID
+  +status: ApplicationStatus
+  +registeredAt: LocalDateTime
+  --
+  +register(UUID challengeId, UUID applicantId, ApplicantType type): Application {static}
+  +accept(): void
+  +reject(): void
+  +withdraw(): void
+  +isActive(): boolean
+}
+
+class Challenge <<external>> {
+  +id: UUID
+  +deadline: LocalDateTime
   +status: String
 }
 
-Developpeur "1" --> "0..*" Candidature : soumet
-Equipe "1" --> "0..*" Candidature : soumet
+Developer "1" --> "0..*" Application : soumet (DEVELOPER)
+Team "1" --> "0..*" Application : soumet (TEAM)
+Team "1" --> "1" Developer : ownerId
+Team "1" --> "0..*" Developer : memberIds
+Application --> ApplicantType : applicantType
+Application --> ApplicationStatus : status
+Application ..> Challenge : challengeId (réf.)
+
+note right of Developer
+  Profil créé de façon idempotente
+  sur keycloakId (409 si déjà existant).
+  Base H2 dédiée à MS2.
+end note
+
+note bottom of Application
+  challengeId est une référence externe
+  vers MS1 : aucun FK inter-services.
+  Un seul inscrit par (challengeId, applicantId).
+  L'inscription publie application.registered.
+end note
+
+legend bottom left
+  <<external>> : entité possédée par MS1, référencée par son identifiant.
+end legend
 @enduml

@@ -1,15 +1,36 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-left to right direction
-actor Expert
-actor Entreprise
+title MS4 · Évaluation — Cas d'utilisation (S4)
 
-package "MS4 Evaluation" {
-  usecase "Creer une grille" as UC1
-  usecase "Ajouter un expert au jury" as UC2
-  usecase "Declarer les gagnants" as UC3
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam UsecaseBackgroundColor #F7F9FC
+skinparam UsecaseBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam PackageBorderColor #2E5A88
+
+left to right direction
+actor "Expert" as EXP
+actor "Entreprise" as ENT
+actor "Admin" as ADM
+
+package "MS4 · Évaluation" {
+  usecase "Créer un profil expert" as UC1
+  usecase "Constituer le jury" as UC2
+  usecase "Créer une grille pondérée" as UC3
+  usecase "Noter une soumission" as UC4
+  usecase "Consulter le classement" as UC5
+  usecase "Désigner les gagnants (top 3)" as UC6
 }
 
-Expert --> UC2
-Entreprise --> UC3
+EXP --> UC1
+EXP --> UC4
+EXP --> UC5
+EXP --> UC6
+ENT --> UC2
+ENT --> UC3
+ENT --> UC5
+ADM --> UC2
+ADM --> UC6
 @enduml

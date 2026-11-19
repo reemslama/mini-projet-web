@@ -1,22 +1,125 @@
 @startuml
+title MS4 · Évaluation — Modèle de classes (S4)
+
 skinparam backgroundColor #FFFFFF
-class Grille {
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ClassBackgroundColor #F7F9FC
+skinparam ClassBorderColor #2E5A88
+skinparam ArrowColor #2E5A88
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+
+class Expert <<aggregate>> {
   +id: UUID
-  +criteria: List
-  +weights: Map
+  +keycloakId: String
+  +displayName: String
+  +domains: List~String~
+  --
+  +create(ExpertCreate data): Expert {static}
+  +isExpertIn(String domain): boolean
+  +evaluate(UUID submissionId, EvaluationCreate data): Evaluation
 }
 
-class Jury {
-  +id: UUID
-  +members: List
+class Jury <<entity>> {
+  +challengeId: UUID
+  +expertIds: List~UUID~
+  --
+  +constitute(UUID challengeId, List~UUID~ expertIds): Jury {static}
+  +addExpert(UUID expertId): void
+  +isMember(UUID expertId): boolean
+  +quorumReached(): boolean
 }
 
-class Evaluation {
+class RubricCriterion <<value object>> {
+  +label: String
+  +weight: double
+  +maxScore: double
+  --
+  +normalize(double score): double
+  +validate(): boolean
+}
+
+class Rubric <<aggregate>> {
   +id: UUID
-  +score: BigDecimal
+  +challengeId: UUID
+  +name: String
+  +criteria: List~RubricCriterion~
+  --
+  +create(RubricCreate data): Rubric {static}
+  +totalWeight(): double
+  +weightedScore(List~Score~ scores): double
+  +criterion(String label): RubricCriterion
+}
+
+class Score <<value object>> {
+  +criterionLabel: String
+  +score: double
+  --
+  +isValidAgainst(RubricCriterion c): boolean
+}
+
+class Evaluation <<entity>> {
+  +id: UUID
+  +submissionId: UUID
+  +expertId: UUID
+  +rubricId: UUID
+  +scores: List~Score~
   +comment: String
+  +weightedScore: double
+  +evaluatedAt: LocalDateTime
+  --
+  +create(EvaluationCreate data): Evaluation {static}
+  +computeWeightedScore(Rubric r): double
+  +isComplete(Rubric r): boolean
 }
 
-Grille --> Evaluation : porte
-Jury --> Evaluation : juge
+class LeaderboardEntry <<read model>> {
+  +rank: int
+  +submissionId: UUID
+  +applicantId: UUID
+  +averageScore: double
+  +evaluationsCount: int
+}
+
+class Winner <<entity>> {
+  +rank: int
+  +submissionId: UUID
+  +applicantId: UUID
+  +score: double
+  +prizeAmount: double
+}
+
+Jury "1" --> "1..*" Expert : expertIds
+Rubric "1" *-- "1..*" RubricCriterion : définit
+Evaluation "1" *-- "1..*" Score : contient
+Evaluation "1" --> "1" Rubric : rubricId
+Expert "1" --> "0..*" Evaluation : juge
+Jury "1" --> "0..*" Evaluation : supervise
+Evaluation "0..*" ..> "0..*" LeaderboardEntry : agrège (moyenne pondérée)
+LeaderboardEntry "1..3" ..> "1..3" Winner : déclare
+Winner ..> Expert : validation jury
+
+note right of Evaluation
+  Seules les soumissions verdict = PASS
+  peuvent être notées (409 sinon).
+  weightedScore = Σ(score/max × poids) / Σ(poids).
+  challengeId (MS1) et submissionId (MS3) :
+  références par UUID, aucune FK inter-services.
+  Base MySQL dédiée à MS4.
+end note
+
+note bottom of Winner
+  declare-winners() : top 3, émet winners.declared.
+  Refus (409) si notation incomplète
+  ou défi déjà clôturé.
+  prizeAmount repris des primes MS1.
+end note
+
+legend bottom left
+  <<read model>> : projection calculée, non persistée comme agrégat.
+end legend
 @enduml

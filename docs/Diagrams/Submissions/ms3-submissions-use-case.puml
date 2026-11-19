@@ -1,16 +1,32 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-left to right direction
-actor Developpeur
-actor Expert
-actor Entreprise
+title MS3 · Soumissions — Cas d'utilisation (S4)
 
-package "MS3 Soumissions" {
-  usecase "Soumettre une soumission" as UC1
-  usecase "Consulter le verdict" as UC2
-  usecase "Mettre a jour le verdict" as UC3
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam UsecaseBackgroundColor #F7F9FC
+skinparam UsecaseBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam PackageBorderColor #2E5A88
+
+left to right direction
+actor "Développeur" as DEV
+actor "Expert / Jury" as EXP
+actor "MS5 · Vérification (interne)" as MS5
+
+package "MS3 · Soumissions" {
+  usecase "Créer une soumission (brouillon)" as UC1
+  usecase "Soumettre définitivement (commit figé)" as UC2
+  usecase "Consulter le verdict" as UC3
+  usecase "Lister les soumissions d'un défi" as UC4
+  usecase "Enregistrer le verdict (appel interne)" as UC5
 }
 
-Developpeur --> UC1
-Expert --> UC3
+DEV --> UC1
+DEV --> UC2
+DEV --> UC3
+EXP --> UC3
+EXP --> UC4
+MS5 --> UC5
 @enduml

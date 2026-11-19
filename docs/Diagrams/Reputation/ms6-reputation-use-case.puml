@@ -1,16 +1,40 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-left to right direction
-actor Developpeur
-actor Expert
-actor Admin
+title MS6 · Réputation — Cas d'utilisation (S4)
 
-package "MS6 Reputation" {
-  usecase "Calculer la reputation" as UC1
-  usecase "Attribuer un badge" as UC2
-  usecase "Classer les developpeurs" as UC3
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam UsecaseBackgroundColor #F7F9FC
+skinparam UsecaseBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam PackageBorderColor #2E5A88
+
+left to right direction
+actor "Développeur" as DEV
+actor "Entreprise" as ENT
+actor "Expert" as EXP
+actor "Admin" as ADM
+actor "RabbitMQ · événements" as RMQ
+
+package "MS6 · Réputation" {
+  usecase "Consulter un profil de réputation" as UC1
+  usecase "Consulter les badges" as UC2
+  usecase "Consulter le classement" as UC3
+  usecase "Ingérer un événement (interne)" as UC4
 }
 
-Developpeur --> UC1
-Expert --> UC2
+DEV --> UC1
+DEV --> UC2
+DEV --> UC3
+ENT --> UC1
+ENT --> UC3
+EXP --> UC3
+ADM --> UC3
+RMQ ..> UC4 : winners.declared / verification.completed
+
+note bottom of UC4
+  POST /api/reputation/events — ingestion idempotente
+  par (type, developerId, challengeId).
+end note
 @enduml

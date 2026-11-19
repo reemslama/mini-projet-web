@@ -1,13 +1,50 @@
 @startuml
+title MS6 · Réputation — Consultation et ingestion d'événements
+
 skinparam backgroundColor #FFFFFF
-actor Developpeur
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+autonumber
+
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+actor "Développeur" as DEV
 participant "Frontend" as FE
 participant "API Gateway" as GW
-participant "MS6 Reputation" as MS6
+participant "MS6 · Réputation" as MS6
+database "H2 (dédiée MS6)" as DB
+queue "RabbitMQ" as RMQ
 
-Developpeur -> FE : consulte son profil
-FE -> GW : GET /api/developers/{id}/reputation
-GW -> MS6 : route /api/developers/{id}/reputation
-MS6 --> GW : profil
-GW --> FE : 200
+== Consultation du profil ==
+
+DEV ->> FE : consulte son profil
+FE ->> GW : GET /ms6/api/developers/{id}/reputation
+GW ->> MS6 : route /api/developers/{id}/reputation
+MS6 ->> DB : SELECT ReputationProfile + Badge
+DB -->> MS6 : profil agrégé
+MS6 -->> GW : 200
+GW -->> FE : 200
+FE -->> DEV : score, badges, classement
+
+== Ingestion asynchrone ==
+
+RMQ --[#C07400]>> MS6 : événements winners.declared / verification.completed
+MS6 ->> MS6 : ReputationEvent.ingest (contrôle doublon)
+MS6 ->> DB : UPSERT ReputationProfile + Badge
+MS6 ->> DB : recompute RankingEntry
+
+note over MS6
+  Idempotence par (type, developerId, challengeId).
+  displayName et skills répliqués depuis MS2.
+  Classement : GET /ms6/api/rankings?skill=... (paginé).
+end note
 @enduml

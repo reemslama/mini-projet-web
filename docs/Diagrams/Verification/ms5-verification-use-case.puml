@@ -1,16 +1,37 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-left to right direction
-actor Developpeur
-actor Expert
-actor Entreprise
+title MS5 · Vérification — Cas d'utilisation (S4)
 
-package "MS5 Verification" {
-  usecase "Executer les tests en bac a sable" as UC1
-  usecase "Detecter le plagiat" as UC2
-  usecase "Generer le resume IA" as UC3
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam UsecaseBackgroundColor #F7F9FC
+skinparam UsecaseBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam PackageBorderColor #2E5A88
+
+left to right direction
+actor "MS3 · Soumissions (événement)" as MS3
+actor "Développeur" as DEV
+actor "Expert" as EXP
+actor "Admin" as ADM
+
+package "MS5 · Vérification" {
+  usecase "Lancer la vérification (tests bac à sable)" as UC1
+  usecase "Détecter une similarité (anti-plagiat)" as UC2
+  usecase "Consulter l'état et les logs" as UC3
+  usecase "Générer un résumé IA (optionnel)" as UC4
 }
 
-Developpeur --> UC1
-Expert --> UC3
+MS3 --> UC1 : submission.submitted
+MS3 --> UC2 : submission.submitted
+ADM --> UC1 : rejeu manuel
+DEV --> UC3
+EXP --> UC3
+EXP --> UC4
+
+note bottom of UC4
+  Couche IA optionnelle (503 si indisponible).
+  Le verdict déterministe ne dépend jamais du LLM.
+end note
 @enduml

@@ -1,22 +1,55 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-actor Developpeur
-actor Entreprise
+title MS2 · Participants — Profil développeur et candidature
 
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+autonumber
+
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+actor "Développeur" as DEV
 participant "Frontend" as FE
 participant "API Gateway" as GW
-participant "MS2 Participants" as MS2
-database "H2" as DB
+participant "MS2 · Participants" as MS2
+database "H2 (dédiée MS2)" as DB
+queue "RabbitMQ" as RMQ
 
-Developpeur -> FE : s’inscrit / rejoint une equipe
-FE -> GW : POST /api/developers
-GW -> MS2 : route /api/developers
-MS2 -> MS2 : DeveloperController.handleCreate
-MS2 -> MS2 : DeveloperService.create
-MS2 -> MS2 : DeveloperRepository.save
-MS2 -> DB : INSERT Developer
-DB --> MS2 : row saved
-MS2 --> GW : 201
-GW --> FE : 201
-FE --> DEV : inscrit
+== Création du profil ==
+
+DEV ->> FE : crée son profil développeur
+FE ->> GW : POST /ms2/api/developers
+GW ->> MS2 : route /api/developers
+MS2 ->> MS2 : DeveloperService.create (idempotent sur keycloakId)
+MS2 ->> DB : INSERT Developer
+DB -->> MS2 : row saved
+MS2 -->> GW : 201
+GW -->> FE : 201
+FE -->> DEV : profil créé
+
+== Candidature à un défi ==
+
+DEV ->> FE : s'inscrit à un défi
+FE ->> GW : POST /ms2/api/challenges/{challengeId}/applications
+GW ->> MS2 : route .../applications
+MS2 ->> MS2 : ApplicationService.register (PENDING)
+MS2 ->> DB : INSERT Application
+MS2 --[#C07400]>> RMQ : événement application.registered
+MS2 -->> GW : 201
+GW -->> FE : 201
+FE -->> DEV : candidature enregistrée
+
+note over MS2
+  409 si profil existant, déjà inscrit ou défi clos.
+  challengeId = référence externe vers MS1 (aucune FK).
+end note
 @enduml

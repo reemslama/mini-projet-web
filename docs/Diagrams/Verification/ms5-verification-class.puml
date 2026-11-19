@@ -1,22 +1,152 @@
 @startuml
+title MS5 · Vérification — Modèle de classes (S4)
+
 skinparam backgroundColor #FFFFFF
-class Soumission {
-  +id: UUID
-  +repoUrl: String
-  +status: String
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ClassBackgroundColor #F7F9FC
+skinparam ClassBorderColor #2E5A88
+skinparam ArrowColor #2E5A88
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+
+enum VerificationStatus <<enumeration>> {
+  QUEUED
+  RUNNING
+  COMPLETED
+  ERROR
 }
 
-class TestResult {
+enum VerdictResult <<enumeration>> {
+  PASS
+  FAIL
+}
+
+class VerificationRequest <<DTO>> {
+  +submissionId: UUID
+  +challengeId: UUID
+  +repoUrl: URI
+  +commitSha: String
+  +testCommand: String
+}
+
+class Verification <<aggregate>> {
   +id: UUID
-  +result: String
+  +submissionId: UUID
+  +status: VerificationStatus
+  +result: VerdictResult
+  +passed: int
+  +failed: int
+  +total: int
+  +coverage: Double
+  +durationMs: long
+  +sandboxImage: String
+  +startedAt: LocalDateTime
+  +finishedAt: LocalDateTime
+  --
+  +launch(VerificationRequest req): Verification {static}
+  +start(): void
+  +complete(VerdictResult r): void
+  +fail(String reason): void
+  +successRate(): double
+  +isFinished(): boolean
+}
+
+class TestResult <<entity>> {
+  +id: UUID
+  +testName: String
+  +outcome: VerdictResult
+  +durationMs: long
   +logs: String
+  --
+  +isPassed(): boolean
 }
 
-class PlagiatAlert {
+class CodeEmbedding <<vector>> {
   +id: UUID
-  +similarity: Double
+  +submissionId: UUID
+  +chunkId: String
+  +model: String
+  +vector: List~Double~
+  --
+  +cosineWith(CodeEmbedding other): double
 }
 
-Soumission --> TestResult : produit
-Soumission --> PlagiatAlert : declenche
+class SimilarityMatch <<value object>> {
+  +otherSubmissionId: UUID
+  +similarity: double
+  --
+  +isAbove(double threshold): boolean
+}
+
+class SimilarityReport <<entity>> {
+  +submissionId: UUID
+  +challengeId: UUID
+  +maxSimilarity: double
+  +flagged: boolean
+  +matches: List~SimilarityMatch~
+  +analyzedAt: LocalDateTime
+  --
+  +analyze(UUID submissionId, UUID challengeId): SimilarityReport {static}
+  +isFlagged(double threshold): boolean
+  +topMatches(int n): List~SimilarityMatch~
+}
+
+class PlagiatAlert <<entity>> {
+  +id: UUID
+  +submissionId: UUID
+  +similarity: double
+  +matchedSubmissionIds: List~UUID~
+  +detectedAt: LocalDateTime
+  --
+  +from(SimilarityReport r): PlagiatAlert {static}
+  +severity(): String
+}
+
+class AiSummary <<optional>> {
+  +submissionId: UUID
+  +summary: String
+  +model: String
+  +generatedAt: LocalDateTime
+  --
+  +generate(UUID submissionId): AiSummary {static}
+}
+
+VerificationRequest "1" --> "1" Verification : déclenche
+Verification "1" *-- "0..*" TestResult : produit
+Verification "1" --> "0..1" SimilarityReport : déclenche
+CodeEmbedding "0..*" ..> "1" SimilarityReport : alimente (pgvector)
+SimilarityReport "1" *-- "0..*" SimilarityMatch : contient
+SimilarityReport "1" --> "0..1" PlagiatAlert : élève
+Verification ..> VerdictResult : result
+SimilarityReport ..> AiSummary : contexte jury (optionnel)
+
+note right of Verification
+  Exécution asynchrone (202 Accepted).
+  Bac à sable isolé : sandboxImage,
+  durée max, pas de réseau sortant.
+  Le verdict est renvoyé à MS3 via
+  PUT /api/submissions/{id}/verdict.
+end note
+
+note bottom of SimilarityReport
+  Détection déterministe : similarité cosinus
+  sur embeddings pgvector, seuil configuré.
+  Rapport non bloquant : un signal flagged
+  est transmis au jury (similarity.flagged),
+  il ne rejette pas la soumission.
+end note
+
+note left of AiSummary
+  Couche LLM optionnelle : 503 si indisponible,
+  la vérification reste opérationnelle.
+end note
+
+legend bottom left
+  <<vector>> : vecteur stocké dans PostgreSQL + pgvector.
+  <<optional>> : amélioration, jamais dans le chemin critique.
+end legend
 @enduml

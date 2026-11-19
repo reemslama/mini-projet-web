@@ -1,74 +1,82 @@
-
 @startuml
-title MS5 - Anti-Plagiarism Detection Pipeline
+title MS5 · Pipeline anti-plagiat — similarité vectorielle déterministe
 
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
 autonumber
 
-actor "Verification Service" as MS5
-participant "MS3 - Submissions" as MS3
-participant "GitHub Repository" as GitHub
-participant "Code Preprocessor" as Prep
-participant "Gemma Embedding Model" as Gemma
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+participant "MS3 · Soumissions" as MS3
+queue "RabbitMQ" as RMQ
+participant "MS5 · Vérification" as MS5
 database "PostgreSQL + pgvector" as DB
-participant "Similarity Analyzer" as Analyzer
-queue "RabbitMQ" as MQ
-participant "MS4 - Evaluation" as MS4
+participant "GitHub (externe)" as GH
+participant "Préprocessing" as PREP
+participant "Embeddings locaux" as EMB
+participant "Analyse de similarité" as ANALYZER
+participant "MS4 · Évaluation" as MS4
 
-== Submission Event ==
+== Déclenchement ==
 
-MS3 -> MQ: submission.submitted
-MQ -> MS5: Consume event\n(submissionId, repoUrl, commitSha)
+MS3 --[#C07400]>> RMQ : événement submission.submitted
+RMQ --[#C07400]>> MS5 : événement submission.submitted
+MS5 ->> MS3 : GET /ms3/api/submissions/{id}
+MS3 -->> MS5 : repoUrl, commitSha, branche
+MS5 ->> GH : clone au commit figé
+GH -->> MS5 : fichiers source
 
-== Retrieve Source Code ==
+== Préprocessing ==
 
-MS5 -> MS3: GET /api/submissions/{id}
-MS3 --> MS5: Submission metadata
+MS5 ->> PREP : extraire et normaliser les fichiers
+PREP ->> PREP : retirer commentaires et fichiers non pertinents
+PREP ->> PREP : découper en chunks
+PREP -->> MS5 : chunks + métadonnées
 
-MS5 -> GitHub: Clone repository\nat fixed commitSha
-GitHub --> MS5: Source code files
+== Embeddings (déterministe) ==
 
-== Code Processing ==
+loop Pour chaque chunk et candidat
+  MS5 ->> EMB : embedding(text)
+  EMB -->> MS5 : vecteur [e1, e2, ..., en]
+end
+MS5 ->> DB : INSERT CodeEmbedding (chunkId, vecteur)
 
-MS5 -> Prep: Extract relevant source files
-Prep -> Prep: Remove comments and irrelevant files
-Prep -> Prep: Normalize code and split into chunks
-Prep --> MS5: Code chunks + candidate metadata
+== Comparaison ==
 
-== Generate Embeddings ==
+MS5 ->> DB : similarité cosinus (pgvector)
+DB -->> MS5 : SimilarityMatch (id, similarité)
+MS5 ->> ANALYZER : agréger et comparer au seuil
+ANALYZER -->> MS5 : SimilarityReport (maxSimilarity, flagged)
+MS5 ->> DB : INSERT SimilarityReport
 
-loop For each code chunk and candidate
-    MS5 -> Gemma: Generate embedding(text)
-    Gemma --> MS5: Vector [e1, e2, ..., en]
+== Résultat ==
+
+alt flagged = true
+  MS5 ->> DB : INSERT PlagiatAlert
+  MS5 --[#C07400]>> RMQ : événement similarity.flagged
+  RMQ --[#C07400]>> MS4 : événement similarity.flagged
+  note right of MS4
+    Rapport transmis au jury avant notation ;
+    aucune soumission n'est rejetée automatiquement.
+  end note
+else flagged = false
+  MS5 ->> MS5 : rapport non flagged (non bloquant)
 end
 
-== Store Vectors ==
-
-MS5 -> DB: INSERT submission embedding\n(vector, submissionId, chunkId)
-DB --> MS5: Embeddings stored
-
-== Similarity Comparison ==
-
-MS5 -> DB: Query candidate vectors\nusing pgvector cosine distance
-DB --> MS5: Similarity scores + matching IDs
-
-MS5 -> Analyzer: Compare scores against threshold
-Analyzer -> Analyzer: Aggregate matching chunks\nCalculate similarity percentage
-Analyzer --> MS5: Similarity report
-
-== Persist Results ==
-
-MS5 -> DB: Store PlagiatAlert\n(similarity, matched submissions)
-DB --> MS5: Alert persisted
-
-alt Similarity exceeds threshold
-    MS5 -> MQ: Publish similarity.flagged
-    MQ -> MS4: similarity.flagged
-    note right of MS4
-      Jury sees plagiarism alert
-      before evaluation.
-    end note
-else No suspicious similarity
-    MS5 -> MS5: Mark analysis as clear
-end
-
+note over MS5
+  Base PostgreSQL + pgvector dédiée à MS5.
+  Seuil configuré ; similarité cosinus dans [0,1].
+  Le verdict ne dépend jamais du LLM : le résumé IA est optionnel
+  (POST /ms5/api/ai/summarize/{submissionId}, 503 si indisponible).
+end note
 @enduml

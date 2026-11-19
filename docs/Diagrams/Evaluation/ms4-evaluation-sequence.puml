@@ -1,21 +1,60 @@
 @startuml
+title MS4 · Évaluation — Notation et désignation des gagnants
+
 skinparam backgroundColor #FFFFFF
-actor Expert
-actor Entreprise
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+autonumber
+
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+actor "Expert" as EXP
 participant "Frontend" as FE
 participant "API Gateway" as GW
-participant "MS4 Evaluation" as MS4
-database "MySQL" as DB
+participant "MS4 · Évaluation" as MS4
+participant "MS3 · Soumissions" as MS3
+database "MySQL (dédiée MS4)" as DB
+queue "RabbitMQ" as RMQ
 
-Expert -> FE : note un projet
-FE -> GW : POST /api/evaluations
-GW -> MS4 : route /api/evaluations
-MS4 -> MS4 : EvaluationController.handleCreate
-MS4 -> MS4 : EvaluationService.create
-MS4 -> MS4 : EvaluationRepository.save
-MS4 -> DB : INSERT Evaluation
-DB --> MS4 : row saved
-MS4 --> GW : scores
-GW --> FE : 201
-FE --> EXP : note
+== Notation d'une soumission ==
+
+EXP ->> FE : note une soumission
+FE ->> GW : POST /ms4/api/evaluations
+GW ->> MS4 : route /api/evaluations
+MS4 ->> MS3 : GET /ms3/api/submissions?challengeId= (OpenFeign)
+MS3 -->> MS4 : soumissions retenues (verdict PASS)
+MS4 ->> MS4 : EvaluationService.create + weightedScore
+MS4 ->> DB : INSERT Evaluation
+MS4 -->> GW : 201
+GW -->> FE : 201
+FE -->> EXP : score pondéré
+
+== Désignation des gagnants ==
+
+EXP ->> FE : déclare les gagnants (top 3)
+FE ->> GW : POST /ms4/api/challenges/{challengeId}/declare-winners
+GW ->> MS4 : route .../declare-winners
+MS4 ->> DB : SELECT leaderboard (moyenne pondérée)
+MS4 ->> MS4 : Winner top 3 (vérification du quorum)
+MS4 ->> DB : INSERT Winner
+MS4 --[#C07400]>> RMQ : événement judging.completed
+MS4 --[#C07400]>> RMQ : événement winners.declared
+MS4 -->> GW : 200
+GW -->> FE : 200
+FE -->> EXP : gagnants déclarés
+
+note over MS4
+  409 si verdict != PASS, notation incomplète ou défi déjà clôturé.
+  weightedScore = Σ(score / maxScore × poids) / Σ(poids).
+  Seul le jury humain désigne les gagnants.
+end note
 @enduml

@@ -1,25 +1,70 @@
 @startuml
+title MS3 · Soumissions — Dépôt, soumission et verdict
+
 skinparam backgroundColor #FFFFFF
-actor Developpeur
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+autonumber
+
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+actor "Développeur" as DEV
 participant "Frontend" as FE
 participant "API Gateway" as GW
-participant "MS3 Soumissions" as MS3
-database "H2" as DB
-participant "MS5 Verification" as MS5
+participant "MS3 · Soumissions" as MS3
+database "H2 (dédiée MS3)" as DB
+queue "RabbitMQ" as RMQ
+participant "MS5 · Vérification" as MS5
 
-Developpeur -> FE : soumet un depot
-FE -> GW : POST /api/submissions
-GW -> MS3 : route /api/submissions
-MS3 -> MS3 : SubmissionController.handleCreate
-MS3 -> MS3 : SubmissionService.create
-MS3 -> MS3 : SubmissionRepository.save
-MS3 -> DB : INSERT Submission
-DB --> MS3 : row saved
-MS3 -> MS5 : submission.submitted (event async)
-MS5 -> MS5 : VerificationService.execute
-MS5 -> MS5 : TestRunner.run (bac a sable)
-MS5 --> MS3 : verdict
-MS3 --> GW : ...
-GW --> FE : ...
-FE --> DEV : verdict
+== Création du brouillon ==
+
+DEV ->> FE : crée une soumission (dépôt public)
+FE ->> GW : POST /ms3/api/submissions
+GW ->> MS3 : route /api/submissions
+MS3 ->> MS3 : SubmissionService.create (DRAFT)
+MS3 ->> DB : INSERT Submission
+MS3 -->> GW : 201
+GW -->> FE : 201
+
+== Soumission définitive ==
+
+DEV ->> FE : soumet définitivement
+FE ->> GW : POST /ms3/api/submissions/{id}/submit
+GW ->> MS3 : route .../submit
+MS3 ->> MS3 : freezeCommit() + contrôle de la deadline
+MS3 ->> DB : UPDATE Submission (SUBMITTED)
+MS3 --[#C07400]>> RMQ : événement submission.submitted
+MS3 -->> GW : 200
+GW -->> FE : 200
+
+== Vérification et verdict ==
+
+RMQ --[#C07400]>> MS5 : événement submission.submitted
+MS5 ->> MS3 : GET /ms3/api/submissions/{id} (OpenFeign)
+MS3 -->> MS5 : repoUrl, commitSha, branche
+MS5 ->> MS5 : tests bac à sable + similarité
+MS5 ->> MS3 : PUT /ms3/api/submissions/{id}/verdict
+MS3 ->> DB : UPDATE Verdict (PASS / FAIL)
+MS5 --[#C07400]>> RMQ : événement verification.completed
+DEV ->> FE : consulte le verdict
+FE ->> GW : GET /ms3/api/submissions/{id}/verdict
+GW ->> MS3 : route .../verdict
+MS3 -->> GW : 200 (Verdict)
+GW -->> FE : 200
+FE -->> DEV : verdict affiché
+
+note over MS3
+  409 si deadline dépassée ou soumission déjà figée.
+  commitSha figé à la soumission (ADR-005).
+  passed + failed = total ; coverage nullable.
+end note
 @enduml

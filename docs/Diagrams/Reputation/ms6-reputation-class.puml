@@ -1,21 +1,96 @@
 @startuml
+title MS6 · Réputation — Modèle de classes (S4)
+
 skinparam backgroundColor #FFFFFF
-class Profil {
-  +id: UUID
-  +score: Double
-  +badges: List
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ClassBackgroundColor #F7F9FC
+skinparam ClassBorderColor #2E5A88
+skinparam ArrowColor #2E5A88
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+
+enum ReputationEventType <<enumeration>> {
+  CHALLENGE_WON
+  SUBMISSION_PASSED
+  SUBMISSION_REJECTED
 }
 
-class Badge {
-  +id: UUID
+class ReputationEvent <<event>> {
+  +type: ReputationEventType
+  +developerId: UUID
+  +challengeId: UUID
+  +weight: int
+  +occurredAt: LocalDateTime
+  --
+  +ingest(ReputationEvent e): void {static}
+  +isDuplicate(): boolean
+  +applyTo(ReputationProfile p): void
+}
+
+class ReputationProfile <<aggregate>> {
+  +developerId: UUID
+  +score: int
+  +challengesWon: int
+  +submissionsPassed: int
+  +skills: List~String~
+  +updatedAt: LocalDateTime
+  --
+  +of(UUID developerId): ReputationProfile {static}
+  +apply(ReputationEvent e): void
+  +recompute(): void
+  +addBadge(Badge b): void
+}
+
+class Badge <<entity>> {
+  +id: String
   +code: String
+  +label: String
+  +awardedAt: LocalDateTime
+  --
+  +award(String code, UUID developerId): Badge {static}
+  +matches(String code): boolean
 }
 
-class Classement {
+class RankingEntry <<read model>> {
   +rank: int
-  +period: String
+  +developerId: UUID
+  +displayName: String
+  +score: int
+  --
+  +build(List~ReputationProfile~ profiles, String skill): List~RankingEntry~ {static}
 }
 
-Profil --> Badge : detient
-Profil --> Classement : genere
+class Developer <<external>> {
+  +id: UUID
+  +displayName: String
+  +skills: List~String~
+}
+
+ReputationEvent "0..*" ..> "1" ReputationProfile : agrège
+ReputationProfile "1" *-- "0..*" Badge : détient
+ReputationProfile "1" --> "0..1" RankingEntry : projeté dans
+Developer "1" --> "1" ReputationProfile : developerId (réf.)
+ReputationEvent --> ReputationEventType : type
+
+note right of ReputationProfile
+  Score agrégé à partir des événements
+  winners.declared et verification.completed.
+  Idempotence par (type, developerId, challengeId).
+  Base H2 dédiée à MS6.
+end note
+
+note bottom of RankingEntry
+  Classement global, filtrable par compétence
+  (skill), pagination Page~T~.
+  displayName répliqué depuis MS2 (référence).
+end note
+
+legend bottom left
+  <<external>> : profil possédé par MS2, référencé par son identifiant.
+  <<read model>> : projection calculée, non persistée comme agrégat.
+end legend
 @enduml

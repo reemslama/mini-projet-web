@@ -1,18 +1,116 @@
 @startuml
+title MS3 · Soumissions — Modèle de classes (S4)
+
 skinparam backgroundColor #FFFFFF
-class Soumission {
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ClassBackgroundColor #F7F9FC
+skinparam ClassBorderColor #2E5A88
+skinparam ArrowColor #2E5A88
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+
+enum SubmissionStatus <<enumeration>> {
+  DRAFT
+  SUBMITTED
+  VERIFYING
+  PASSED
+  REJECTED
+  WITHDRAWN
+}
+
+enum VerdictResult <<enumeration>> {
+  PASS
+  FAIL
+}
+
+class Challenge <<external>> {
   +id: UUID
-  +repoUrl: String
+  +deadline: LocalDateTime
+}
+
+class Applicant <<external>> {
+  +id: UUID
+  +displayName: String
+}
+
+class Submission <<aggregate>> {
+  +id: UUID
+  +challengeId: UUID
+  +applicantId: UUID
+  +repoUrl: URI
+  +branch: String
+  +status: SubmissionStatus
   +commitSha: String
-  +status: String
+  +submittedAt: LocalDateTime
+  --
+  +create(SubmissionCreate data): Submission {static}
+  +submit(): Submission
+  +freezeCommit(String sha): void
+  +markVerifying(): void
+  +isLate(LocalDateTime deadline): boolean
+  +withdraw(): void
+  +canBeJudged(): boolean
 }
 
-class Verdict {
-  +id: UUID
-  +result: String
-  +tests: List
+class Verdict <<entity>> {
+  +submissionId: UUID
+  +result: VerdictResult
+  +passed: int
+  +failed: int
+  +total: int
+  +coverage: Double
+  +logsUrl: URI
+  +verifiedAt: LocalDateTime
+  --
+  +isPass(): boolean
+  +successRate(): double
+  +fromVerification(Verification v): Verdict {static}
+  +summary(): String
+}
+
+class TestCaseResult <<internal>> {
+  +testName: String
+  +outcome: VerdictResult
+  +durationMs: long
   +logs: String
+  --
+  +isPassed(): boolean
 }
 
-Soumission --> Verdict : produit
+Submission "0..*" --> "1" Challenge : challengeId (réf.)
+Submission "0..*" --> "1" Applicant : applicantId (réf.)
+Submission "1" --> "0..1" Verdict : produit
+Submission "1" *-- "0..*" TestCaseResult : détail des tests
+Submission --> SubmissionStatus : status
+Verdict --> VerdictResult : result
+
+note right of Submission
+  Cycle de vie : DRAFT → SUBMITTED → VERIFYING
+  → PASSED | REJECTED (ou WITHDRAWN).
+  submit() fige commitSha et contrôle
+  deadline (409 si limite dépassée).
+  Émet submission.submitted vers RabbitMQ.
+end note
+
+note bottom of Verdict
+  Verdict reçu de MS5 (PUT interne /verdict).
+  passed + failed = total.
+  coverage nullable (non calculé).
+  Base H2 dédiée à MS3.
+end note
+
+note bottom of Applicant
+  Référence abstraite (applicantId) vers un Developer
+  ou une Team de MS2 selon applicantType.
+  Aucune clé étrangère inter-services.
+end note
+
+legend bottom left
+  <<external>> : référence par UUID vers MS1 / MS2.
+  <<internal>> : détail non exposé tel quel par l'API OpenAPI.
+end legend
 @enduml

@@ -1,21 +1,32 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-left to right direction
-actor Entreprise
-actor Developpeur
-actor Expert
-actor Admin
+title MS1 · Challenges — Cas d'utilisation (S4)
 
-package "MS1 Challenges" {
-  usecase "Publier un defi" as UC1
-  usecase "Gerer le cycle de vie du defi" as UC2
-  usecase "Gerer les primes" as UC3
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam UsecaseBackgroundColor #F7F9FC
+skinparam UsecaseBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam PackageBorderColor #2E5A88
+
+left to right direction
+actor "Entreprise" as ENT
+actor "Développeur" as DEV
+actor "Expert" as EXP
+actor "Admin" as ADM
+
+package "MS1 · Challenges" {
+  usecase "Créer et publier un défi" as UC1
+  usecase "Définir les critères d'acceptation" as UC2
+  usecase "Définir les primes (top 3)" as UC3
+  usecase "Consulter le catalogue des défis" as UC4
 }
 
-Entreprise --> UC1
-Entreprise --> UC2
-Entreprise --> UC3
-Developpeur --> UC2 : soumission
-Expert --> UC2 : notation
-Admin --> UC2
+ENT --> UC1
+ENT --> UC2
+ENT --> UC3
+ADM --> UC1
+DEV --> UC4
+EXP --> UC4
 @enduml

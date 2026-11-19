@@ -1,24 +1,54 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-actor Entreprise
-actor Developpeur
-actor Expert
-actor Admin
+title MS1 · Challenges — Création puis publication d'un défi
 
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+autonumber
+
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+actor "Entreprise" as ENT
 participant "Frontend" as FE
 participant "API Gateway" as GW
-participant "MS1 Challenges" as MS1
-database "H2" as DB
+participant "MS1 · Challenges" as MS1
+database "H2 (dédiée MS1)" as DB
+queue "RabbitMQ" as RMQ
 
-Entreprise -> FE : publie un defi
-FE -> GW : POST /api/challenges
-GW -> MS1 : route /api/challenges
-MS1 -> MS1 : ChallengeController.handleCreate
-MS1 -> MS1 : ChallengeService.create
-MS1 -> MS1 : ChallengeRepository.save
-MS1 -> DB : INSERT Challenge
-DB --> MS1 : row saved
-MS1 --> GW : 201
-GW --> FE : 201
-FE --> ENT : defi publie
+== Création du brouillon ==
+
+ENT ->> FE : crée un défi
+FE ->> GW : POST /ms1/api/challenges
+GW ->> MS1 : route /api/challenges
+MS1 ->> MS1 : ChallengeService.create (DRAFT)
+MS1 ->> DB : INSERT Challenge
+DB -->> MS1 : row saved
+MS1 -->> GW : 201
+GW -->> FE : 201
+
+== Publication ==
+
+ENT ->> FE : publie le défi
+FE ->> GW : POST /ms1/api/challenges/{id}/publish
+GW ->> MS1 : route .../publish
+MS1 ->> MS1 : ChallengeService.publish (publishedAt)
+MS1 ->> DB : UPDATE Challenge (PUBLISHED)
+MS1 --[#C07400]>> RMQ : événement challenge.published
+MS1 -->> GW : 200
+GW -->> FE : 200
+FE -->> ENT : défi publié
+
+note over MS1
+  Règles : title ≤ 140 caractères ; update() refusé hors DRAFT ;
+  409 si déjà publié ou incomplet.
+end note
 @enduml

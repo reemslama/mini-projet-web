@@ -1,16 +1,80 @@
 @startuml
+title MS5 · Vérification — Tests en bac à sable et similarité
+
 skinparam backgroundColor #FFFFFF
-actor Developpeur
+skinparam shadowing false
+skinparam FontName Helvetica
+skinparam FontSize 12
+skinparam ArrowColor #2E5A88
+skinparam ParticipantBackgroundColor #F7F9FC
+skinparam ParticipantBorderColor #2E5A88
+skinparam ActorBorderColor #2E5A88
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #D9A400
+autonumber
+
+legend top left
+  ->> appel synchrone ; -->> réponse ; -->> orange : événement RabbitMQ.
+end legend
+
+actor "Admin" as ADM
 participant "Frontend" as FE
 participant "API Gateway" as GW
-participant "MS5 Verification" as MS5
+participant "MS3 · Soumissions" as MS3
+queue "RabbitMQ" as RMQ
+participant "MS5 · Vérification" as MS5
+participant "MS1 · Challenges" as MS1
+participant "Bac à sable Docker" as DC
 database "PostgreSQL + pgvector" as DB
+participant "MS4 · Évaluation" as MS4
 
-MS5 -> MS5 : VerificationController.handleEvent
-MS5 -> MS5 : VerificationService.execute
-MS5 -> MS5 : TestRunner.run (bac a sable)
-MS5 -> MS5 : SimilarityService.analyze (pgvector)
-MS5 -> DB : INSERT TestResult / PlagiatAlert
-DB --> MS5 : result / alert
-MS5 --> MS3 : verdict
+== Déclenchement manuel (rejeu) ==
+
+ADM ->> FE : relance une vérification
+FE ->> GW : POST /ms5/api/verifications
+GW ->> MS5 : route /api/verifications
+MS5 -->> GW : 202 Accepted (traitement asynchrone)
+GW -->> FE : 202
+
+== Déclenchement automatique ==
+
+MS3 --[#C07400]>> RMQ : événement submission.submitted
+RMQ --[#C07400]>> MS5 : événement submission.submitted (submissionId, challengeId)
+
+== Exécution déterministe ==
+
+MS5 ->> MS1 : GET /ms1/api/challenges/{id}/acceptance-criteria
+MS1 -->> MS5 : critères + testCommand
+MS5 ->> MS3 : GET /ms3/api/submissions/{id}
+MS3 -->> MS5 : repoUrl, commitSha, branche
+MS5 ->> DC : exécution isolée des tests (commit figé)
+DC -->> MS5 : TestResult (PASS / FAIL, logs)
+MS5 ->> DB : INSERT TestResult, CodeEmbedding
+MS5 ->> DB : similarité cosinus (pgvector)
+DB -->> MS5 : SimilarityReport (matches, maxSimilarity)
+MS5 ->> DB : INSERT SimilarityReport
+
+== Restitution des résultats ==
+
+MS5 ->> MS3 : PUT /ms3/api/submissions/{id}/verdict
+MS5 --[#C07400]>> RMQ : événement verification.completed
+RMQ --[#C07400]>> MS3 : événement verification.completed
+
+alt Similarité au-dessus du seuil
+  MS5 ->> DB : INSERT PlagiatAlert
+  MS5 --[#C07400]>> RMQ : événement similarity.flagged
+  RMQ --[#C07400]>> MS4 : événement similarity.flagged
+  note right of MS4
+    Signalement visible par le jury avant notation ;
+    aucune soumission n'est rejetée automatiquement.
+  end note
+end
+
+note over MS5
+  Base PostgreSQL + pgvector dédiée à MS5.
+  Exécution sans réseau sortant ; verdict déterministe.
+  AI optionnelle : POST /ms5/api/ai/summarize/{submissionId},
+  503 si indisponible, jamais dans le chemin critique.
+  Suivi : GET /ms5/api/verifications/{id} et /{id}/logs.
+end note
 @enduml
