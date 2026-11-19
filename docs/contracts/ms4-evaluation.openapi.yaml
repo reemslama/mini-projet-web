@@ -1,0 +1,207 @@
+openapi: 3.0.3
+info:
+  title: Arène · MS4 Évaluation
+  version: 1.0.0
+  description: Experts, jury, grilles pondérées, scores, leaderboard, désignation des gagnants.
+servers:
+  - url: http://localhost:8080/ms4
+  - url: http://localhost:8084
+paths:
+  /api/experts:
+    post:
+      tags: [Experts]
+      summary: Créer un profil expert
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExpertCreate' }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expert' }
+  /api/challenges/{challengeId}/jury:
+    parameters:
+      - { name: challengeId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Jury]
+      summary: Constituer le jury d'un défi
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expertIds]
+              properties:
+                expertIds: { type: array, items: { type: string, format: uuid } }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jury' }
+    get:
+      tags: [Jury]
+      summary: Lire le jury d'un défi
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jury' }
+  /api/rubrics:
+    post:
+      tags: [Rubrics]
+      summary: Créer une grille pondérée
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RubricCreate' }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Rubric' }
+    get:
+      tags: [Rubrics]
+      summary: Grilles d'un défi
+      parameters:
+        - { name: challengeId, in: query, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Rubric' }
+  /api/evaluations:
+    post:
+      tags: [Evaluations]
+      summary: Noter une soumission (experts)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EvaluationCreate' }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Evaluation' }
+        '409': { description: Soumission non retenue (verdict != PASS) }
+  /api/challenges/{challengeId}/leaderboard:
+    get:
+      tags: [Leaderboard]
+      summary: Classement d'un défi (moyenne pondérée)
+      parameters:
+        - { name: challengeId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/LeaderboardEntry' }
+  /api/challenges/{challengeId}/declare-winners:
+    post:
+      tags: [Winners]
+      summary: Désigner les gagnants (top 3) — émet winners.declared
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: challengeId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Winner' }
+        '409': { description: Notation incomplète ou défi déjà clôturé }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    ExpertCreate:
+      type: object
+      required: [keycloakId, displayName]
+      properties:
+        keycloakId: { type: string }
+        displayName: { type: string }
+        domains: { type: array, items: { type: string } }
+    Expert:
+      allOf:
+        - $ref: '#/components/schemas/ExpertCreate'
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+    Jury:
+      type: object
+      properties:
+        challengeId: { type: string, format: uuid }
+        expertIds: { type: array, items: { type: string, format: uuid } }
+    RubricCreate:
+      type: object
+      required: [challengeId, name, criteria]
+      properties:
+        challengeId: { type: string, format: uuid }
+        name: { type: string }
+        criteria:
+          type: array
+          items:
+            type: object
+            required: [label, weight, maxScore]
+            properties:
+              label: { type: string }
+              weight: { type: number, format: double }
+              maxScore: { type: number, format: double, default: 10 }
+    Rubric:
+      allOf:
+        - $ref: '#/components/schemas/RubricCreate'
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+    EvaluationCreate:
+      type: object
+      required: [submissionId, expertId, rubricId, scores]
+      properties:
+        submissionId: { type: string, format: uuid }
+        expertId: { type: string, format: uuid }
+        rubricId: { type: string, format: uuid }
+        scores:
+          type: array
+          items:
+            type: object
+            required: [criterionLabel, score]
+            properties:
+              criterionLabel: { type: string }
+              score: { type: number, format: double }
+        comment: { type: string }
+    Evaluation:
+      allOf:
+        - $ref: '#/components/schemas/EvaluationCreate'
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            weightedScore: { type: number, format: double }
+            evaluatedAt: { type: string, format: date-time }
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank: { type: integer }
+        submissionId: { type: string, format: uuid }
+        applicantId: { type: string, format: uuid }
+        averageScore: { type: number, format: double }
+        evaluationsCount: { type: integer }
+    Winner:
+      type: object
+      properties:
+        rank: { type: integer }
+        submissionId: { type: string, format: uuid }
+        applicantId: { type: string, format: uuid }
+        score: { type: number, format: double }
+        prizeAmount: { type: number, format: double }
