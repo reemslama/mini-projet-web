@@ -238,15 +238,15 @@ if (-not $SkipDb) {
 }
 
 # Discovery servers first, so clients can register as soon as they are up.
-Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'eureka-server') -Port 8761 `
+Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'Backend\eureka-server') -Port 8761 `
     -RunArgs '--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://eureka2:8762/eureka/'
-Start-ServiceProcess -Name 'eureka-2' -Dir (Join-Path $Root 'eureka-server') -Port 8762 `
+Start-ServiceProcess -Name 'eureka-2' -Dir (Join-Path $Root 'Backend\eureka-server') -Port 8762 `
     -RunArgs '--server.port=8762 --eureka.instance.hostname=eureka2 --eureka.client.service-url.defaultZone=http://eureka1:8761/eureka/'
 [void](Wait-Service -Name 'eureka-1' -Label 'Eureka 1' -Port 8761)
 [void](Wait-Service -Name 'eureka-2' -Label 'Eureka 2' -Port 8762)
 
-Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
-Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'ms4-evaluation') -Port 8085 -RunArgs ("--server.port=8085 $dbDialectArg").Trim()
+Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
+Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8085 -RunArgs ("--server.port=8085 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumission') -Port 8083
 
 [void](Wait-Service -Name 'ms4-evaluation-1' -Label 'MS4 Evaluation 1' -Port 8084)

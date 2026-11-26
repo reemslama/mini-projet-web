@@ -188,15 +188,15 @@ if (( SKIP_DB == 0 )); then
 fi
 
 # Discovery servers first, so clients can register as soon as they are up.
-start_service eureka-1 "$ROOT_DIR/eureka-server" 8761 \
+start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 \
     "--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://eureka2:8762/eureka/"
-start_service eureka-2 "$ROOT_DIR/eureka-server" 8762 \
+start_service eureka-2 "$ROOT_DIR/Backend/eureka-server" 8762 \
     "--server.port=8762 --eureka.instance.hostname=eureka2 --eureka.client.service-url.defaultZone=http://eureka1:8761/eureka/"
 wait_service eureka-1 "Eureka 1" 8761 || true
 wait_service eureka-2 "Eureka 2" 8762 || true
 
-start_service ms4-evaluation-1 "$ROOT_DIR/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
-start_service ms4-evaluation-2 "$ROOT_DIR/ms4-evaluation" 8085 "--server.port=8085 $DB_DIALECT_ARG"
+start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
+start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8085 "--server.port=8085 $DB_DIALECT_ARG"
 start_service ms3-soumission "$ROOT_DIR/Backend/soumission" 8083 ""
 
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true

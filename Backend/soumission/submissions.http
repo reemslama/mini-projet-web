@@ -1,0 +1,100 @@
+### MS3 — Soumissions (Arène)
+### Client HTTP IntelliJ IDEA : exécutez les requêtes dans l'ordre (1 → 6).
+### La requête 1 capture l'id créé dans {{submissionId}} pour les suivantes.
+### Pour passer par la gateway : remplacer @host par http://localhost:8080/ms3
+
+@host = http://localhost:8083
+@api = {{host}}/api/submissions
+@challengeId = 11111111-1111-1111-1111-111111111111
+@applicantId = 22222222-2222-2222-2222-222222222222
+@submissionId = 33333333-3333-3333-3333-333333333333
+@deadline = 2030-12-31T23:59:59
+
+### 1. Créer une soumission (brouillon) — 201
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "{{applicantId}}",
+  "repoUrl": "https://github.com/example/arena-solution.git",
+  "branch": "main"
+}
+
+> {%
+client.global.set("submissionId", response.body.id);
+%}
+
+### 2. Lister les soumissions du défi — 200
+GET {{api}}?challengeId={{challengeId}}
+Accept: application/json
+
+### 2b. Lister filtré par statut — 200
+GET {{api}}?challengeId={{challengeId}}&status=SUBMITTED
+Accept: application/json
+
+### 3. Détail d'une soumission — 200
+GET {{api}}/{{submissionId}}
+Accept: application/json
+
+### 4. Soumettre définitivement (fige le commit) — 200, puis 409 si déjà soumise
+POST {{api}}/{{submissionId}}/submit?commitSha=abc1234&deadline={{deadline}}
+Accept: application/json
+
+### 5. Déposer le verdict (appel interne MS5) — 200
+PUT {{api}}/{{submissionId}}/verdict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "submissionId": "{{submissionId}}",
+  "result": "PASS",
+  "passed": 8,
+  "failed": 2,
+  "total": 10,
+  "coverage": 87.5,
+  "logsUrl": "https://ci.example.com/builds/42/logs"
+}
+
+### 6. Lire le verdict — 200 (404 avant le dépôt du verdict)
+GET {{api}}/{{submissionId}}/verdict
+Accept: application/json
+
+### Erreur : soumission introuvable — 404
+GET {{api}}/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Erreur : verdict introuvable — 404
+GET {{api}}/00000000-0000-0000-0000-000000000000/verdict
+Accept: application/json
+
+### Erreur : passed + failed ≠ total — 409
+PUT {{api}}/{{submissionId}}/verdict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "submissionId": "{{submissionId}}",
+  "result": "FAIL",
+  "passed": 3,
+  "failed": 3,
+  "total": 10,
+  "coverage": 42.0,
+  "logsUrl": "https://ci.example.com/builds/43/logs"
+}
+
+### Erreur : identifiant du verdict différent de l'URL — 409
+PUT {{api}}/{{submissionId}}/verdict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "submissionId": "00000000-0000-0000-0000-000000000000",
+  "result": "PASS",
+  "passed": 10,
+  "failed": 0,
+  "total": 10,
+  "coverage": 100.0,
+  "logsUrl": "https://ci.example.com/builds/44/logs"
+}
