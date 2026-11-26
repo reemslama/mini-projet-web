@@ -1,6 +1,13 @@
 ### MS3 — Soumissions (Arène)
-### Client HTTP IntelliJ IDEA : exécutez les requêtes dans l'ordre (1 → 6).
-### La requête 1 capture l'id créé dans {{submissionId}} pour les suivantes.
+### Deux modes d'utilisation :
+###  - Script : python3 e2e/run_http_e2e.py exécute les requêtes 1 → 13 dans l'ordre
+###    et ignore les blocs [SETUP].
+###  - Manuel : exécuter d'abord les 3 blocs [SETUP] ci-dessous, puis n'importe quel endpoint.
+### Les blocs [SETUP] créent les soumissions et alimentent {{submissionId}}, {{submissionIdB}}
+### et {{lateSubmissionId}}. Sans eux, ces variables gardent leur valeur temporaire
+### (aaaa/bbbb/cccc) et un endpoint avec {{...}} répond 404.
+### Attention : [SETUP] crée des brouillons. Pour GET/PUT verdict, exécuter d'abord 4 (submit),
+### puis 5 (verdict) sur {{submissionId}} ; pour 10/11/12, exécuter 9 puis 10 sur {{submissionIdB}}.
 ### Pour passer par la gateway : remplacer @host par http://localhost:8080/ms3
 ### Attention : le bloc "> {% ... %}" est un script de réponse, jamais une partie du corps JSON.
 
@@ -8,8 +15,58 @@
 @api = {{host}}/api/submissions
 @challengeId = 11111111-1111-1111-1111-111111111111
 @applicantId = 22222222-2222-2222-2222-222222222222
-@submissionId = 33333333-3333-3333-3333-333333333333
+@submissionId = aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+@submissionIdB = bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+@lateSubmissionId = cccccccc-cccc-cccc-cccc-cccccccccccc
 @deadline = 2030-12-31T23:59:59
+
+### [SETUP] A — créer la soumission principale (manuel avant tout endpoint) — 201
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "{{applicantId}}",
+  "repoUrl": "https://github.com/example/arena-solution.git",
+  "branch": "main"
+}
+
+> {%
+client.global.set("submissionId", response.body.id);
+%}
+
+### [SETUP] B — créer la 2e soumission (manuel) — 201
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "44444444-4444-4444-4444-444444444444",
+  "repoUrl": "https://github.com/example/arena-solution-2.git",
+  "branch": "feature/optimize"
+}
+
+> {%
+client.global.set("submissionIdB", response.body.id);
+%}
+
+### [SETUP] C — créer la soumission pour le test de retard (manuel) — 201
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "55555555-5555-5555-5555-555555555555",
+  "repoUrl": "https://github.com/example/arena-late.git",
+  "branch": "main"
+}
+
+> {%
+client.global.set("lateSubmissionId", response.body.id);
+%}
 
 ### 1. Créer une soumission (brouillon) — 201
 POST {{api}}
