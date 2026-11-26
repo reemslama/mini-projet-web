@@ -1,0 +1,5 @@
+tn/arene/ms5/domain/SimilarityPolicyTest.class
+tn/arene/ms5/domain/CommandPolicyTest.class
+tn/arene/ms5/domain/VerdictPolicyTest.class
+tn/arene/ms5/adapter/web/VerificationRestControllerTest.class
+tn/arene/ms5/domain/VerificationTest.class

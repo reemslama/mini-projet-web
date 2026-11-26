@@ -17,7 +17,8 @@ Tous les services backend exposent les endpoints `health`, `info` et `metrics` :
 | --- | --- | --- |
 | Eureka Server | 8761 | `http://localhost:8761/actuator/health` |
 | MS3 Soumission | 8083 | `http://localhost:8083/actuator/health` |
-| MS4 Évaluation (x2) | 8084 / 8085 | `http://localhost:8084/actuator/health` |
+| MS4 Évaluation (x2) | 8084 / 8087 | `http://localhost:8084/actuator/health` |
+| MS5 Vérification | 8085 | `http://localhost:8085/actuator/health` |
 
 Pour chaque port, remplacer `health` par `info` ou `metrics` (ex. `http://localhost:8083/actuator/metrics/http.server.requests`).
 Le `health` inclut le détail des composants (base de données, disque, Eureka) et les clients
@@ -33,6 +34,7 @@ Les microservices exposent une documentation interactive générée par springdo
 | --- | --- | --- |
 | MS3 Soumission | `http://localhost:8083/swagger-ui.html` | `http://localhost:8083/v3/api-docs` |
 | MS4 Évaluation | `http://localhost:8084/swagger-ui.html` | `http://localhost:8084/v3/api-docs` |
+| MS5 Vérification | `http://localhost:8085/swagger-ui.html` | `http://localhost:8085/v3/api-docs` |
 
 > [!note] Référence contractuelle
 > Les contrats OpenAPI gelés dans [`contracts/`](../contracts/) restent la source de vérité.

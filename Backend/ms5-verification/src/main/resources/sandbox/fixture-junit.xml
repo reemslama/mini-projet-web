@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="acceptance">
+    <testcase name="acceptance-critere-1" time="0.012"/>
+    <testcase name="acceptance-critere-2" time="0.008"/>
+    <testcase name="acceptance-critere-3" time="0.021"/>
+  </testsuite>
+</testsuites>
