@@ -12,12 +12,12 @@ un moteur de vérification exécute les tests ; les experts notent et désignent
 
 6 microservices + infrastructure partagée :
 
-- **MS1 · Challenges** (M1) — publication de défis, cycles de vie, primes.
-- **MS2 · Participants** (M2) — développeurs, équipes, candidatures.
-- **MS3 · Soumissions** (M3) — dépôt GitHub, soumission, verdict.
-- **MS4 · Évaluation** (M4) — jury, grilles, scores, classement, gagnants.
-- **MS5 · Vérification** (équipe) — technologie avancée : bac à sable, anti-plagiat, IA d’appoint.
-- **MS6 · Réputation** (M5) — profils, badges, classements.
+- **MS1 · Challenges** (M1) — publication de défis, cycles de vie, primes. ->  ## Chaima dahdouh
+- **MS2 · Participants** (M2) — développeurs, équipes, candidatures. -> ## Naima Hadwej
+- **MS3 · Soumissions** (M3) — dépôt GitHub, soumission, verdict. -> ## Amine ichaoui
+- **MS4 · Évaluation** (M4) — jury, grilles, scores, classement, gagnants. -> ## Rim slama
+- **MS5 · Vérification** (équipe) — technologie avancée : bac à sable, anti-plagiat, IA d’appoint. 
+- **MS6 · Réputation** (M5) — profils, badges, classements. -> ## Jihed ramedi
 
 Infrastructure partagée : API Gateway, Keycloak, Eureka, Docker / Compose, Frontend Angular 21.
 
