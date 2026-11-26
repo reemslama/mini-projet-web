@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
 #   Eureka (8761)
-#   MS4 Evaluation (8084, 8085)
+#   MS4 Evaluation (8084, 8087)
 #   MS3 Soumission (8083)
+#   MS5 Verification (8085)
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -193,18 +194,23 @@ start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 \
 wait_service eureka-1 "Eureka" 8761 || true
 
 start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
-start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8085 "--server.port=8085 $DB_DIALECT_ARG"
+start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
 start_service ms3-soumission "$ROOT_DIR/Backend/soumission" 8083 ""
+start_service ms5-verification "$ROOT_DIR/Backend/ms5-verification" 8085 ""
 
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
-wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8085 || true
+wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8087 || true
 wait_service ms3-soumission "MS3 Soumission" 8083 || true
+wait_service ms5-verification "MS5 Verification" 8085 || true
 
 printf '\n'
 info "services requested:"
-printf '  Eureka          http://localhost:8761\n'
-printf '  MS4 (8084)      http://localhost:8084/swagger-ui.html\n'
-printf '  MS4 (8085)      http://localhost:8085/swagger-ui.html\n'
-printf '  MS3             http://localhost:8083\n'
+printf '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
+printf '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html\n'
+printf '  MS4 (8087)      health http://localhost:8087/actuator/health  docs http://localhost:8087/swagger-ui.html\n'
+printf '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html\n'
+printf '  MS5 (8085)      health http://localhost:8085/actuator/health  docs http://localhost:8085/swagger-ui.html\n'
+printf '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION\n'
+printf '  MS5 requests    %s/Backend/ms5-verification/verifications.http\n' "$ROOT_DIR"
 printf '  Logs            %s\n' "$LOG_DIR"
 printf '  Stop all        ./stop-all.sh\n'

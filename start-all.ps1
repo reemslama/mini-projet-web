@@ -2,8 +2,8 @@
 .SYNOPSIS
     Launches all backend services of the Arène project.
 .DESCRIPTION
-    Eureka (8761), MS4 Evaluation (8084, 8085),
-    MS3 Soumission (8083). Adds the eureka1 host alias if needed
+    Eureka (8761), MS4 Evaluation (8084, 8087),
+    MS3 Soumission (8083), MS5 Verification (8085). Adds the eureka1 host alias if needed
     and starts MySQL via Docker when it is not already running.
 .EXAMPLE
     .\start-all.bat
@@ -243,18 +243,23 @@ Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'Backend\eureka-serv
 [void](Wait-Service -Name 'eureka-1' -Label 'Eureka' -Port 8761)
 
 Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
-Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8085 -RunArgs ("--server.port=8085 $dbDialectArg").Trim()
+Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8087 -RunArgs ("--server.port=8087 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumission') -Port 8083
+Start-ServiceProcess -Name 'ms5-verification' -Dir (Join-Path $Root 'Backend\ms5-verification') -Port 8085
 
 [void](Wait-Service -Name 'ms4-evaluation-1' -Label 'MS4 Evaluation 1' -Port 8084)
-[void](Wait-Service -Name 'ms4-evaluation-2' -Label 'MS4 Evaluation 2' -Port 8085)
+[void](Wait-Service -Name 'ms4-evaluation-2' -Label 'MS4 Evaluation 2' -Port 8087)
 [void](Wait-Service -Name 'ms3-soumission' -Label 'MS3 Soumission' -Port 8083)
+[void](Wait-Service -Name 'ms5-verification' -Label 'MS5 Verification' -Port 8085)
 
 Write-Host ''
 Write-Step 'services requested:'
-Write-Host '  Eureka          http://localhost:8761'
-Write-Host '  MS4 (8084)      http://localhost:8084/swagger-ui.html'
-Write-Host '  MS4 (8085)      http://localhost:8085/swagger-ui.html'
-Write-Host '  MS3             http://localhost:8083'
+Write-Host '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)'
+Write-Host '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html'
+Write-Host '  MS4 (8087)      health http://localhost:8087/actuator/health  docs http://localhost:8087/swagger-ui.html'
+Write-Host '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html'
+Write-Host '  MS5 (8085)      health http://localhost:8085/actuator/health  docs http://localhost:8085/swagger-ui.html'
+Write-Host '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION'
+Write-Host "  MS5 requests    $Root\Backend\ms5-verification\verifications.http"
 Write-Host "  Logs            $LogDir"
 Write-Host '  Stop all        .\stop-all.bat'

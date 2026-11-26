@@ -1,0 +1,39 @@
+@host = http://localhost:8085
+@submissionId = 33333333-3333-3333-3333-333333333333
+@challengeId = 11111111-1111-1111-1111-111111111111
+
+### 1. Lancer une vérification (202, asynchrone)
+POST {{host}}/api/verifications
+Content-Type: application/json
+
+{
+  "submissionId": "{{submissionId}}"
+}
+
+> {%
+  client.global.set("verificationId", response.body.id);
+%}
+
+### 2. État / résultat (attendre le worker)
+GET {{host}}/api/verifications/{{verificationId}}
+
+### 3. Logs redactés
+GET {{host}}/api/verifications/{{verificationId}}/logs
+
+### 4. Analyse de similarité
+POST {{host}}/api/similarity/analyze
+Content-Type: application/json
+
+{
+  "submissionId": "{{submissionId}}",
+  "challengeId": "{{challengeId}}"
+}
+
+### 5. Rapport de similarité calculé
+GET {{host}}/api/similarity/{{submissionId}}
+
+### 6. Résumé IA (503 tant que l'IA est désactivée)
+POST {{host}}/api/ai/summarize/{{submissionId}}
+
+### Supervision
+GET {{host}}/actuator/health
