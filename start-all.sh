@@ -192,10 +192,12 @@ start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 \
     "--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://localhost:8761/eureka/"
 wait_service eureka-1 "Eureka" 8761 || true
 
+start_service ms1-challenges "$ROOT_DIR/Backend/ms1-challenges" 8081 ""
 start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
 start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8085 "--server.port=8085 $DB_DIALECT_ARG"
 start_service ms3-soumission "$ROOT_DIR/Backend/soumission" 8083 ""
 
+wait_service ms1-challenges "MS1 Challenges" 8081 || true
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
 wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8085 || true
 wait_service ms3-soumission "MS3 Soumission" 8083 || true
@@ -203,6 +205,7 @@ wait_service ms3-soumission "MS3 Soumission" 8083 || true
 printf '\n'
 info "services requested:"
 printf '  Eureka          http://localhost:8761\n'
+printf '  MS1 (8081)      http://localhost:8081/swagger-ui.html\n'
 printf '  MS4 (8084)      http://localhost:8084/swagger-ui.html\n'
 printf '  MS4 (8085)      http://localhost:8085/swagger-ui.html\n'
 printf '  MS3             http://localhost:8083\n'

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Launches all backend services of the Arène project.
 .DESCRIPTION
@@ -242,10 +242,12 @@ Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'Backend\eureka-serv
     -RunArgs '--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://localhost:8761/eureka/'
 [void](Wait-Service -Name 'eureka-1' -Label 'Eureka' -Port 8761)
 
+Start-ServiceProcess -Name 'ms1-challenges' -Dir (Join-Path $Root 'Backend\ms1-challenges') -Port 8081
 Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8085 -RunArgs ("--server.port=8085 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumission') -Port 8083
 
+[void](Wait-Service -Name 'ms1-challenges' -Label 'MS1 Challenges' -Port 8081)
 [void](Wait-Service -Name 'ms4-evaluation-1' -Label 'MS4 Evaluation 1' -Port 8084)
 [void](Wait-Service -Name 'ms4-evaluation-2' -Label 'MS4 Evaluation 2' -Port 8085)
 [void](Wait-Service -Name 'ms3-soumission' -Label 'MS3 Soumission' -Port 8083)
@@ -253,6 +255,7 @@ Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumi
 Write-Host ''
 Write-Step 'services requested:'
 Write-Host '  Eureka          http://localhost:8761'
+Write-Host '  MS1 (8081)      http://localhost:8081/swagger-ui.html'
 Write-Host '  MS4 (8084)      http://localhost:8084/swagger-ui.html'
 Write-Host '  MS4 (8085)      http://localhost:8085/swagger-ui.html'
 Write-Host '  MS3             http://localhost:8083'
