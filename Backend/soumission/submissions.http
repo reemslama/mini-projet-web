@@ -23,6 +23,9 @@ Accept: application/json
   "branch": "main"
 }
 
+> {%
+client.global.set("submissionId", response.body.id);
+%}
 
 ### 2. Lister les soumissions du défi — 200
 GET {{api}}?challengeId={{challengeId}}
