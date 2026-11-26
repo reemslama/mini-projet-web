@@ -23,9 +23,6 @@ Accept: application/json
   "branch": "main"
 }
 
-> {%
-client.global.set("submissionId", response.body.id);
-%}
 
 ### 2. Lister les soumissions du défi — 200
 GET {{api}}?challengeId={{challengeId}}
@@ -200,3 +197,23 @@ Accept: application/json
   "applicantId": "66666666-6666-6666-6666-666666666666",
   "branch": "main"
 }
+
+### Actuator — état de santé détaillé (db, diskSpace, discoveryClient, ping) — 200
+GET {{host}}/actuator/health
+Accept: application/json
+
+### Actuator — informations de l'application — 200
+GET {{host}}/actuator/info
+Accept: application/json
+
+### Actuator — liste des métriques disponibles — 200
+GET {{host}}/actuator/metrics
+Accept: application/json
+
+### Actuator — détail d'une métrique (temps de réponse HTTP) — 200
+GET {{host}}/actuator/metrics/http.server.requests
+Accept: application/json
+
+### Actuator — santé du serveur Eureka — 200
+GET http://localhost:8761/actuator/health
+Accept: application/json
