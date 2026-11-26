@@ -42,8 +42,7 @@ Le microservice MS4 Evaluation assure la gestion des évaluations, des experts, 
 
 | Service | Port |
 |---|---|
-| Eureka Server – Instance 1 | 8761 |
-| Eureka Server – Instance 2 | 8762 |
+| Eureka Server | 8761 |
 | MS4 Evaluation – Instance 1 | 8084 |
 | MS4 Evaluation – Instance 2 | 8085 |
 | MySQL | 3306 |
@@ -52,21 +51,13 @@ Base de données : `forge_evaluation`
 
 ## 6. Configuration Eureka
 
-Le microservice MS4 est enregistré auprès de deux serveurs Eureka configurés en mode Peer-to-Peer.
+Le microservice MS4 est enregistré auprès d'un seul serveur Eureka (standalone, sans réplication Peer-to-Peer).
 
-Les deux instances du microservice sont visibles dans les dashboards Eureka.
-
-### Eureka Server 1
+Les deux instances du microservice sont visibles dans le dashboard Eureka.
 
 http://localhost:8761
 
-![Eureka Server 1](screenshots/eureka-8761.png)
-
-### Eureka Server 2
-
-http://localhost:8762
-
-![Eureka Server 2](screenshots/eureka-8762.png)
+![Eureka Server](screenshots/eureka-8761.png)
 
 ## 7. Tests CRUD
 
@@ -146,21 +137,20 @@ Après le redémarrage de MySQL, les instances retrouvent automatiquement leur �
 ## 10. Instructions de lancement
 
 1. Démarrer MySQL.
-2. Configurer les alias locaux eureka1 et eureka2 dans le fichier hosts.
+2. Configurer l'alias local eureka1 dans le fichier hosts.
 3. Démarrer Eureka Server sur le port 8761.
-4. Démarrer la deuxième instance Eureka sur le port 8762 avec sa configuration Peer-to-Peer.
-5. Démarrer MS4 Evaluation sur le port 8084.
-6. Démarrer la deuxième instance MS4 sur le port 8085.
-7. Vérifier les dashboards Eureka.
-8. Tester les opérations CRUD avec Swagger.
-9. Vérifier les endpoints Actuator.
+4. Démarrer MS4 Evaluation sur le port 8084.
+5. Démarrer la deuxième instance MS4 sur le port 8085.
+6. Vérifier le dashboard Eureka.
+7. Tester les opérations CRUD avec Swagger.
+8. Vérifier les endpoints Actuator.
 
 ## 11. Résultats
 
 - Implémentation des entités et associations JPA.
 - CRUD Expert fonctionnel.
 - Persistance des données.
-- Enregistrement auprès des deux serveurs Eureka.
+- Enregistrement auprès du serveur Eureka.
 - Exécution de deux instances MS4.
 - Supervision avec Spring Boot Actuator.
 - Détection d'une panne MySQL.

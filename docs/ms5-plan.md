@@ -960,7 +960,7 @@ validés version 1 (rejet en DLQ si `version` non supportée).
 | Variable | Défaut | Usage |
 |---|---|---|
 | `SERVER_PORT` / `SPRING_APPLICATION_NAME` | `8085` / `ms5-verification` | Port réservé MS5, nom Eureka. |
-| `EUREKA_DEFAULT_ZONE` | `http://eureka1:8761/eureka/,http://eureka2:8762/eureka/` | Découverte (ADR-002). |
+| `EUREKA_DEFAULT_ZONE` | `http://eureka1:8761/eureka/` | Découverte (ADR-002), serveur unique. |
 | `DB_URL` / `DB_USER` / `DB_PASSWORD` | `jdbc:postgresql://ms5-db:5432/ms5_verification` / `ms5` / secret | Base dédiée (ADR-001). |
 | `FLYWAY_ENABLED` / `JPA_DDL_AUTO` | `true` / `validate` | Migrations versionnées ; pas de `update` en prod. |
 | `RABBITMQ_HOST` / `PORT` / `USER` / `PASSWORD` | `rabbitmq` / `5672` / secret | Broker. |

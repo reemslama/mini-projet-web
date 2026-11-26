@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
-#   Eureka 1 (8761) + Eureka 2 (8762)
+#   Eureka (8761)
 #   MS4 Evaluation (8084, 8085)
 #   MS3 Soumission (8083)
 set -euo pipefail
@@ -64,14 +64,14 @@ wait_service() {
 
 ensure_host_aliases() {
     local alias missing=()
-    for alias in eureka1 eureka2; do
+    for alias in eureka1; do
         if ! getent hosts "$alias" >/dev/null 2>&1; then
             missing+=("$alias")
         fi
     done
 
     if (( ${#missing[@]} == 0 )); then
-        info "host aliases eureka1/eureka2 are already configured"
+        info "host alias eureka1 is already configured"
         return 0
     fi
 
@@ -82,7 +82,7 @@ ensure_host_aliases() {
         printf '127.0.0.1 %s\n' "${missing[*]}" | sudo tee -a /etc/hosts >/dev/null
     else
         warn "cannot edit /etc/hosts automatically; add this line as root:"
-        warn "  127.0.0.1 eureka1 eureka2"
+        warn "  127.0.0.1 eureka1"
         return 1
     fi
 
@@ -174,7 +174,7 @@ fi
 
 info "project root: $ROOT_DIR"
 ensure_host_aliases || {
-    warn "Eureka peers require the eureka1 and eureka2 host aliases."
+    warn "Eureka requires the eureka1 host alias."
     exit 1
 }
 
@@ -187,13 +187,10 @@ if (( SKIP_DB == 0 )); then
     fi
 fi
 
-# Discovery servers first, so clients can register as soon as they are up.
+# Discovery server first, so clients can register as soon as it is up.
 start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 \
-    "--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://eureka2:8762/eureka/"
-start_service eureka-2 "$ROOT_DIR/Backend/eureka-server" 8762 \
-    "--server.port=8762 --eureka.instance.hostname=eureka2 --eureka.client.service-url.defaultZone=http://eureka1:8761/eureka/"
-wait_service eureka-1 "Eureka 1" 8761 || true
-wait_service eureka-2 "Eureka 2" 8762 || true
+    "--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://localhost:8761/eureka/"
+wait_service eureka-1 "Eureka" 8761 || true
 
 start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
 start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8085 "--server.port=8085 $DB_DIALECT_ARG"
@@ -205,8 +202,7 @@ wait_service ms3-soumission "MS3 Soumission" 8083 || true
 
 printf '\n'
 info "services requested:"
-printf '  Eureka 1        http://localhost:8761\n'
-printf '  Eureka 2        http://localhost:8762\n'
+printf '  Eureka          http://localhost:8761\n'
 printf '  MS4 (8084)      http://localhost:8084/swagger-ui.html\n'
 printf '  MS4 (8085)      http://localhost:8085/swagger-ui.html\n'
 printf '  MS3             http://localhost:8083\n'

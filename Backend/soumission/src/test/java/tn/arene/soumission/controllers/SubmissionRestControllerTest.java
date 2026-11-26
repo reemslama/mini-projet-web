@@ -256,6 +256,31 @@ class SubmissionRestControllerTest {
 	}
 
 	@Test
+	void missingChallengeIdReturns400ErrorEnvelope() throws Exception {
+		mvc.perform(get("/api/submissions"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").isNotEmpty())
+				.andExpect(jsonPath("$.path").value("/api/submissions"));
+	}
+
+	@Test
+	void invalidQueryParameterReturns400ErrorEnvelope() throws Exception {
+		mvc.perform(get("/api/submissions").param("challengeId", "not-a-uuid"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").isNotEmpty())
+				.andExpect(jsonPath("$.path").value("/api/submissions"));
+
+		mvc.perform(get("/api/submissions").param("challengeId", CHALLENGE_ID.toString()).param("status", "BOGUS"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.message").isNotEmpty());
+	}
+
+	@Test
 	void actuatorEndpointsAreExposedForMonitoring() throws Exception {
 		mvc.perform(get("/actuator/health"))
 				.andExpect(status().isOk())
