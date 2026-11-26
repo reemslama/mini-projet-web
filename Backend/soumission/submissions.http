@@ -2,6 +2,7 @@
 ### Client HTTP IntelliJ IDEA : exécutez les requêtes dans l'ordre (1 → 6).
 ### La requête 1 capture l'id créé dans {{submissionId}} pour les suivantes.
 ### Pour passer par la gateway : remplacer @host par http://localhost:8080/ms3
+### Attention : le bloc "> {% ... %}" est un script de réponse, jamais une partie du corps JSON.
 
 @host = http://localhost:8083
 @api = {{host}}/api/submissions
@@ -97,4 +98,105 @@ Accept: application/json
   "total": 10,
   "coverage": 100.0,
   "logsUrl": "https://ci.example.com/builds/44/logs"
+}
+
+### 7. Créer une 2e soumission (autre candidat, branche feature) — 201
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "44444444-4444-4444-4444-444444444444",
+  "repoUrl": "https://github.com/example/arena-solution-2.git",
+  "branch": "feature/optimize"
+}
+
+> {%
+client.global.set("submissionIdB", response.body.id);
+%}
+
+### 8. Lister les brouillons du défi — 200
+GET {{api}}?challengeId={{challengeId}}&status=DRAFT
+Accept: application/json
+
+### 9. Soumettre la 2e soumission (commit figé, deadline future) — 200
+POST {{api}}/{{submissionIdB}}/submit?commitSha=deadbeef&deadline={{deadline}}
+Accept: application/json
+
+### 10. Déposer un verdict FAIL sur la 2e soumission — 200 (statut final REJECTED)
+PUT {{api}}/{{submissionIdB}}/verdict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "submissionId": "{{submissionIdB}}",
+  "result": "FAIL",
+  "passed": 4,
+  "failed": 6,
+  "total": 10,
+  "coverage": 61.5,
+  "logsUrl": "https://ci.example.com/builds/43/logs"
+}
+
+### 11. Vérifier le statut final REJECTED — 200
+GET {{api}}/{{submissionIdB}}
+Accept: application/json
+
+### 12. Lister les soumissions REJECTED du défi — 200
+GET {{api}}?challengeId={{challengeId}}&status=REJECTED
+Accept: application/json
+
+### 13. Créer une soumission pour le test de retard — 201
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "55555555-5555-5555-5555-555555555555",
+  "repoUrl": "https://github.com/example/arena-late.git",
+  "branch": "main"
+}
+
+> {%
+client.global.set("lateSubmissionId", response.body.id);
+%}
+
+### Erreur : soumission hors délai — 409
+POST {{api}}/{{lateSubmissionId}}/submit?commitSha=toolate&deadline=2020-01-01T00:00:00
+Accept: application/json
+
+### Erreur : double soumission (commit déjà figé) — 409
+POST {{api}}/{{submissionId}}/submit?commitSha=anothercommit&deadline={{deadline}}
+Accept: application/json
+
+### Erreur : verdict sur un brouillon non soumis — 409
+PUT {{api}}/{{lateSubmissionId}}/verdict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "submissionId": "{{lateSubmissionId}}",
+  "result": "PASS",
+  "passed": 10,
+  "failed": 0,
+  "total": 10,
+  "coverage": 100.0,
+  "logsUrl": "https://ci.example.com/builds/45/logs"
+}
+
+### Liste vide pour un défi inconnu — 200 []
+GET {{api}}?challengeId=99999999-9999-9999-9999-999999999999
+Accept: application/json
+
+### Erreur : champ obligatoire manquant (repoUrl) — 400
+POST {{api}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "applicantId": "66666666-6666-6666-6666-666666666666",
+  "branch": "main"
 }
