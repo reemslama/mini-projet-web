@@ -5,6 +5,9 @@ The file is executed in order with urllib; @variables, {{placeholders}} and the
 IntelliJ response handlers (`> {% client.global.set(...) %}`) are supported.
 Expected HTTP codes are read from the `### ... — 201` comments.
 
+Blocks whose description starts with [SETUP] are skipped: they are fixtures for
+running the .http file manually, endpoint by endpoint, in an HTTP client.
+
 Usage (service must already be running):
     ./start-all.sh
     python3 Backend/soumission/e2e/run_http_e2e.py
@@ -128,6 +131,9 @@ def run(path: Path, base_url=None, timeout=10):
 
     passed = failed = skipped = 0
     for description, lines in blocks:
+        if description.upper().startswith("[SETUP]"):
+            skipped += 1
+            continue
         request = parse_request(lines)
         if request is None:
             skipped += 1
