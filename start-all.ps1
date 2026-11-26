@@ -2,8 +2,8 @@
 .SYNOPSIS
     Launches all backend services of the Arène project.
 .DESCRIPTION
-    Eureka 1 (8761), Eureka 2 (8762), MS4 Evaluation (8084, 8085),
-    MS3 Soumission (8083). Adds the eureka1/eureka2 host aliases if needed
+    Eureka (8761), MS4 Evaluation (8084, 8085),
+    MS3 Soumission (8083). Adds the eureka1 host alias if needed
     and starts MySQL via Docker when it is not already running.
 .EXAMPLE
     .\start-all.bat
@@ -81,14 +81,14 @@ function Wait-Service {
 function Ensure-HostAliases {
     $hostsPath = Join-Path $env:SystemRoot 'System32\drivers\etc\hosts'
     $missing = @()
-    foreach ($alias in @('eureka1', 'eureka2')) {
+    foreach ($alias in @('eureka1')) {
         $pattern = '(^|\s)' + $alias + '(\s|$)'
         if (-not (Select-String -LiteralPath $hostsPath -Pattern $pattern -Quiet -ErrorAction SilentlyContinue)) {
             $missing += $alias
         }
     }
     if ($missing.Count -eq 0) {
-        Write-Step 'host aliases eureka1/eureka2 are already configured'
+        Write-Step 'host alias eureka1 is already configured'
         return $true
     }
 
@@ -225,7 +225,7 @@ if (-not (Get-Command java -ErrorAction SilentlyContinue)) {
 
 Write-Step "project root: $Root"
 if (-not (Ensure-HostAliases)) {
-    Write-Host '[start-all] ERROR: Eureka peers need the eureka1 and eureka2 host aliases.' -ForegroundColor Red
+    Write-Host '[start-all] ERROR: Eureka needs the eureka1 host alias.' -ForegroundColor Red
     exit 1
 }
 $dbDialectArg = ''
@@ -237,16 +237,13 @@ if (-not $SkipDb) {
     }
 }
 
-# Discovery servers first, so clients can register as soon as they are up.
-Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'eureka-server') -Port 8761 `
-    -RunArgs '--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://eureka2:8762/eureka/'
-Start-ServiceProcess -Name 'eureka-2' -Dir (Join-Path $Root 'eureka-server') -Port 8762 `
-    -RunArgs '--server.port=8762 --eureka.instance.hostname=eureka2 --eureka.client.service-url.defaultZone=http://eureka1:8761/eureka/'
-[void](Wait-Service -Name 'eureka-1' -Label 'Eureka 1' -Port 8761)
-[void](Wait-Service -Name 'eureka-2' -Label 'Eureka 2' -Port 8762)
+# Discovery server first, so clients can register as soon as it is up.
+Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'Backend\eureka-server') -Port 8761 `
+    -RunArgs '--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://localhost:8761/eureka/'
+[void](Wait-Service -Name 'eureka-1' -Label 'Eureka' -Port 8761)
 
-Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
-Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'ms4-evaluation') -Port 8085 -RunArgs ("--server.port=8085 $dbDialectArg").Trim()
+Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
+Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8085 -RunArgs ("--server.port=8085 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumission') -Port 8083
 
 [void](Wait-Service -Name 'ms4-evaluation-1' -Label 'MS4 Evaluation 1' -Port 8084)
@@ -255,8 +252,7 @@ Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumi
 
 Write-Host ''
 Write-Step 'services requested:'
-Write-Host '  Eureka 1        http://localhost:8761'
-Write-Host '  Eureka 2        http://localhost:8762'
+Write-Host '  Eureka          http://localhost:8761'
 Write-Host '  MS4 (8084)      http://localhost:8084/swagger-ui.html'
 Write-Host '  MS4 (8085)      http://localhost:8085/swagger-ui.html'
 Write-Host '  MS3             http://localhost:8083'
