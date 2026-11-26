@@ -6,15 +6,15 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>tn.esprit.forge</groupId>
+    <groupId>tn.arene</groupId>
     <artifactId>forge</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
     <modules>
-        <module>eureka-server</module>
-        <module>ms4-evaluation</module>
+        <module>Backend/eureka-server</module>
+        <module>Backend/ms4-evaluation</module>
     </modules>
 
 </project>
