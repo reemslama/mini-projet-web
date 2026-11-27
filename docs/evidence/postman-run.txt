@@ -1,0 +1,64 @@
+Running your collection...
+postman
+
+Atelier API Gateway — Arène
+
+Root MS1 · Catalogue des défis
+
+  GET http://localhost:8088/ms1/api/challenges [200 OK, 184 B, 147 ms]
+  Pass  MS1 reachable through gateway
+
+Root MS2 · Instance qui répond (load balancing)
+
+  GET http://localhost:8088/ms2/api/participants/hello [200 OK, 200 B, 74 ms]
+  -
+  | 'MS2 instance: 8082'
+  -
+  Pass  MS2 reachable through gateway
+
+Root MS2 · Lister les utilisateurs
+
+  GET http://localhost:8088/ms2/api/users [200 OK, 1.28 KB, 50 ms]
+  Pass  MS2 users routed through gateway
+
+Root MS3 · Soumissions d'un défi
+
+  GET http://localhost:8088/ms3/api/submissions?challengeId=11111111-1111-1111-1111-111111111111 [200 OK, 109 B, 85 ms]
+  Pass  MS3 reachable through gateway
+
+Root MS4 · Lister les experts
+
+  GET http://localhost:8088/ms4/experts/getAll [200 OK, 118 B, 177 ms]
+  Pass  MS4 reachable through gateway
+
+Root MS5 · Lancer une vérification
+
+  POST http://localhost:8088/ms5/api/verifications [202 Accepted, 567 B, 93 ms]
+  Pass  MS5 reachable through gateway
+
+Root MS6 · Profil de réputation
+
+  GET http://localhost:8088/ms6/api/developers/11111111-1111-1111-1111-111111111111/reputation [200 OK, 545 B, 30 ms]
+  Pass  MS6 reachable through gateway
+
+-----------------------------------------------------------------------
+|                         |            executed |              failed |
+--------------------------+---------------------+----------------------
+|              iterations |                   1 |                   0 |
+--------------------------+---------------------+----------------------
+|                requests |                   7 |                   0 |
+--------------------------+---------------------+----------------------
+|            test-scripts |                   7 |                   0 |
+--------------------------+---------------------+----------------------
+|      prerequest-scripts |                   0 |                   0 |
+--------------------------+---------------------+----------------------
+|              assertions |                   7 |                   0 |
+-----------------------------------------------------------------------
+| total run duration: 881 ms                                          |
+-----------------------------------------------------------------------
+| total data received: 2 KB (approx)                                  |
+-----------------------------------------------------------------------
+| average response time: 93 ms [min: 30 ms, max: 177 ms, s.d.: 48 ms] |
+-----------------------------------------------------------------------
+Publishing run details to postman cloud is currently supported only for collections specified via postman collection id or collections belonging to git linked APIs
+Refer: https://go.pstmn.io/postman-cli-faq

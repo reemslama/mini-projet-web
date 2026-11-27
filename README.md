@@ -41,6 +41,7 @@ Java 21 + Spring Boot, Spring Cloud Gateway, Eureka, Keycloak (OIDC / JWT), Open
 
 | Composant | Port(s) | Nom dans Eureka |
 | --- | --- | --- |
+| API Gateway | 8080 (`$GATEWAY_PORT`) | API-GATEWAY |
 | Eureka peer1 | 8761 (`localhost`) | EUREKA-SERVER |
 | Eureka peer2 | 8762 (`127.0.0.1`) | EUREKA-SERVER |
 | MS1 Challenges (x2) | 8081 / 8091 | MS1-CHALLENGES |
@@ -61,13 +62,24 @@ Java 21 + Spring Boot, Spring Cloud Gateway, Eureka, Keycloak (OIDC / JWT), Open
 
 ```bash
 scripts/start-all.sh        # Linux / macOS
-scripts/start-all.bat       # Windows
+scripts/start-all.ps1       # Windows (PowerShell)
 ```
 
 Ou dans IntelliJ : lancer `EurekaServerApplication` deux fois avec les profils `peer1` puis `peer2`,
 puis chaque microservice (2e instance : *VM options* `-Dserver.port=8096`).
 
 Dashboards : http://localhost:8761 et http://localhost:8762
+
+API Gateway : http://localhost:8080 (`/ms1/**` … `/ms6/**`), portail Swagger unifié :
+http://localhost:8080/swagger-ui.html. Voir [`docs/api-gateway.md`](docs/api-gateway.md).
+Si le port 8080 est déjà pris, la Gateway peut être lancée sur un autre port avec
+`GATEWAY_PORT=8088 scripts/start-all.sh`.
+
+Captures de l’atelier Gateway :
+
+![Eureka avec les ports de la Gateway et des instances](docs/screenshots/api-gateway-eureka.png)
+![Portail Swagger unifié des six microservices](docs/screenshots/api-gateway-swagger.png)
+![Test Postman via la Gateway](docs/screenshots/api-gateway-postman.png)
 
 Vérification : `curl -s http://localhost:8761/eureka/apps` et
 `curl -s http://localhost:8762/eureka/apps` doivent lister les mêmes applications.
@@ -85,6 +97,7 @@ Actuator (MS6) :
 ## Documentation
 
 - `docs/Document-technique.md` — document technique.
+- `docs/api-gateway.md` — routage, load balancing, Swagger et Postman via la Gateway.
 - `docs/Presentation/` — présentation S4 (React + reveal.js).
 - `docs/Diagrams/` — diagrammes PlantUML (SVG).
 - `contracts/` — contrats OpenAPI par microservice.

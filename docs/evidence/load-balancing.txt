@@ -1,0 +1,38 @@
+Eureka registrations (peer1)
+- api-gateway
+    <instanceId>api-gateway:8088</instanceId>
+    <port enabled="true">8088</port>
+- ms1-challenges
+    <instanceId>ms1-challenges:8091</instanceId>
+    <port enabled="true">8091</port>
+    <instanceId>ms1-challenges:8081</instanceId>
+    <port enabled="true">8081</port>
+- participants
+    <instanceId>participants:8082</instanceId>
+    <port enabled="true">8082</port>
+    <instanceId>participants:8092</instanceId>
+    <port enabled="true">8092</port>
+
+Routing decisions (gateway DEBUG logs)
+2026-11-27T15:27:38.628+01:00 DEBUG 57837 --- [api-gateway] [r-http-epoll-12] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8082
+2026-11-27T15:27:38.694+01:00 DEBUG 57837 --- [api-gateway] [r-http-epoll-12] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8082
+2026-11-27T15:27:38.791+01:00 DEBUG 57837 --- [api-gateway] [r-http-epoll-12] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=ms3-soumissions, service=MS3-SOUMISSIONS, algorithm=RoundRobin(default), upstream=172.14.15.191:8083
+2026-11-27T15:27:45.681+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-1] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=ms1-challenges, service=MS1-CHALLENGES, algorithm=HeaderHash(X-Route-Key), upstream=172.14.15.191:8081
+2026-11-27T15:27:45.714+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-2] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=ms1-challenges, service=MS1-CHALLENGES, algorithm=HeaderHash(X-Route-Key), upstream=172.14.15.191:8081
+2026-11-27T15:27:45.743+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-3] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=ms1-challenges, service=MS1-CHALLENGES, algorithm=HeaderHash(X-Route-Key), upstream=172.14.15.191:8091
+2026-11-27T15:27:45.802+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-4] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=ms1-challenges, service=MS1-CHALLENGES, algorithm=HeaderHash(X-Route-Key), upstream=172.14.15.191:8091
+2026-11-27T15:27:45.845+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-5] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:45.890+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-6] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:45.913+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-7] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8082
+2026-11-27T15:27:45.942+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-8] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:45.965+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-9] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:45.992+01:00 DEBUG 57837 --- [api-gateway] [r-http-epoll-10] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8082
+2026-11-27T15:27:46.016+01:00 DEBUG 57837 --- [api-gateway] [r-http-epoll-11] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8082
+2026-11-27T15:27:46.045+01:00 DEBUG 57837 --- [api-gateway] [r-http-epoll-12] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:46.073+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-1] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:46.096+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-2] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=participants, service=PARTICIPANTS, algorithm=Random, upstream=172.14.15.191:8092
+2026-11-27T15:27:46.124+01:00 DEBUG 57837 --- [api-gateway] [or-http-epoll-3] t.a.gateway.filter.RoutingAuditFilter    : Routing decision: route=ms3-soumissions, service=MS3-SOUMISSIONS, algorithm=RoundRobin(default), upstream=172.14.15.191:8083
+
+MS2 Random distribution (12 calls, body port)
+      6 "port":"8082"
+      6 "port":"8092"

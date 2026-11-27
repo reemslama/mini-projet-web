@@ -1,0 +1,15 @@
+Before stopping MS6
+{"circuitBreakers":{"ms6CircuitBreaker":{"failureRate":"0.0%","slowCallRate":"0.0%","failureRateThreshold":"50.0%","slowCallRateThreshold":"100.0%","bufferedCalls":1,"failedCalls":0,"slowCalls":0,"slowFailedCalls":0,"notPermittedCalls":0,"state":"CLOSED"}}}
+
+Stopping MS6 and calling /ms6/api/developers/.../reputation twice
+call 1 -> 200 {"status":"SERVICE_UNAVAILABLE","message":"Le microservice est momentanément indisponible (circuit breaker ouvert).","route":"ms6-reputation","fallbackUri":"/fallback/ms","timestamp":"2026-11-27T14:28:00.898750985Z"}
+call 2 -> 200 {"status":"SERVICE_UNAVAILABLE","message":"Le microservice est momentanément indisponible (circuit breaker ouvert).","route":"ms6-reputation","fallbackUri":"/fallback/ms","timestamp":"2026-11-27T14:28:00.915481700Z"}
+
+Circuit breaker after failure
+{"circuitBreakers":{"ms6CircuitBreaker":{"failureRate":"50.0%","slowCallRate":"0.0%","failureRateThreshold":"50.0%","slowCallRateThreshold":"100.0%","bufferedCalls":2,"failedCalls":1,"slowCalls":0,"slowFailedCalls":0,"notPermittedCalls":1,"state":"OPEN"}}}
+
+Restarting MS6 and waiting for discovery cache + half-open transition
+call after recovery -> 200 {"id":1,"developerId":"11111111-1111-1111-1111-111111111111","displayName":"amine.dev","score":120,"challengesWon":1,"submissionsPassed":1,"skills":["java","spr
+
+Circuit breaker after recovery
+{"circuitBreakers":{"ms6CircuitBreaker":{"failureRate":"-1.0%","slowCallRate":"-1.0%","failureRateThreshold":"50.0%","slowCallRateThreshold":"100.0%","bufferedCalls":0,"failedCalls":0,"slowCalls":0,"slowFailedCalls":0,"notPermittedCalls":0,"state":"CLOSED"}}}

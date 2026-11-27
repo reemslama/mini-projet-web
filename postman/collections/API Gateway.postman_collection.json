@@ -1,0 +1,191 @@
+{
+  "info": {
+    "_postman_id": "8f1c6a34-5d92-4e0b-9b7a-2f6de1c0a911",
+    "name": "Atelier API Gateway — Arène",
+    "description": "Une requête testée par microservice, toujours via la Gateway (http://localhost:8080 par défaut). Positionner la variable gatewayUrl si Jenkins occupe le port 8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gatewayUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "MS1 · Catalogue des défis",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS1 reachable through gateway', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{gatewayUrl}}/ms1/api/challenges"
+      }
+    },
+    {
+      "name": "MS2 · Instance qui répond (load balancing)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS2 reachable through gateway', function () {",
+              "  pm.response.to.have.status(200);",
+              "  var body = pm.response.json();",
+              "  pm.expect(body.port).to.be.oneOf(['8082', '8092']);",
+              "  console.log('MS2 instance: ' + body.port);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{gatewayUrl}}/ms2/api/participants/hello"
+      }
+    },
+    {
+      "name": "MS2 · Lister les utilisateurs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS2 users routed through gateway', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{gatewayUrl}}/ms2/api/users"
+      }
+    },
+    {
+      "name": "MS3 · Soumissions d'un défi",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS3 reachable through gateway', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{gatewayUrl}}/ms3/api/submissions?challengeId=11111111-1111-1111-1111-111111111111"
+      }
+    },
+    {
+      "name": "MS4 · Lister les experts",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS4 reachable through gateway', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{gatewayUrl}}/ms4/experts/getAll"
+      }
+    },
+    {
+      "name": "MS5 · Lancer une vérification",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS5 reachable through gateway', function () {",
+              "  pm.response.to.have.status(202);",
+              "  pm.expect(pm.response.json().id).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-By",
+            "value": "postman:api-gateway"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"submissionId\": \"33333333-3333-3333-3333-333333333333\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{gatewayUrl}}/ms5/api/verifications"
+      }
+    },
+    {
+      "name": "MS6 · Profil de réputation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('MS6 reachable through gateway', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{gatewayUrl}}/ms6/api/developers/11111111-1111-1111-1111-111111111111/reputation"
+      }
+    }
+  ]
+}

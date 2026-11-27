@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
 #   Eureka peer1 (8761) and peer2 (8762)
+#   API Gateway (8080 or $GATEWAY_PORT)
 #   MS1 Challenges (8081, 8091), MS2 Participants (8082, 8092)
 #   MS4 Evaluation (8084, 8087)
 #   MS3 Soumission (8083, 8093)
@@ -13,6 +14,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG_DIR="$SCRIPT_DIR/logs"
 RUN_DIR="$SCRIPT_DIR/run"
 MS2_DIR="$REPO_ROOT/Backend/ms2-participants"
+GATEWAY_PORT="${GATEWAY_PORT:-8080}"
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-300}"
 SKIP_DB=0
 
@@ -241,6 +243,9 @@ wait_service eureka-1 "Eureka peer1" 8761 || true
 start_service eureka-2 "$REPO_ROOT/Backend/eureka-server" 8762 "--spring.profiles.active=peer2"
 wait_service eureka-2 "Eureka peer2" 8762 || true
 
+start_service api-gateway "$REPO_ROOT/Backend/api-gateway" "$GATEWAY_PORT" ""
+wait_service api-gateway "API Gateway" "$GATEWAY_PORT" || true
+
 start_service ms1-challenges "$REPO_ROOT/Backend/ms1-challenges" 8081 ""
 # Start MS2 instances sequentially: DataInitializer seeds only when the table is
 # empty, so launching both at once causes a duplicate-key failure on one of them.
@@ -281,6 +286,7 @@ printf '\n'
 info "services requested:"
 printf '  Eureka 8761     http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
 printf '  Eureka 8762     http://localhost:8762  (peer2, profile peer2)\n'
+printf '  Gateway (%s)  health http://localhost:%s/actuator/health  docs http://localhost:%s/swagger-ui.html\n' "$GATEWAY_PORT" "$GATEWAY_PORT" "$GATEWAY_PORT"
 printf '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html\n'
 printf '  MS1 (8091)      fallback health http://localhost:8091/actuator/health\n'
 printf '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html\n'

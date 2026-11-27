@@ -2,7 +2,8 @@
 .SYNOPSIS
     Launches all backend services of the Arène project.
 .DESCRIPTION
-    Eureka peer1 (8761) and peer2 (8762), MS1 Challenges (8081, 8091),
+    Eureka peer1 (8761) and peer2 (8762), API Gateway (8080 or $env:GATEWAY_PORT),
+    MS1 Challenges (8081, 8091),
     MS2 Participants (8082, 8092), MS3 Soumission (8083, 8093),
     MS4 Evaluation (8084, 8087), MS5 Verification (8085, 8095),
     MS6 Reputation (8086, 8096).
@@ -19,6 +20,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $ScriptRoot = $PSScriptRoot
 $Root = Split-Path -Parent $ScriptRoot
+$GatewayPort = 8080
+if ($env:GATEWAY_PORT) { $GatewayPort = [int]$env:GATEWAY_PORT }
 $LogDir = Join-Path $ScriptRoot 'logs'
 $RunDir = Join-Path $ScriptRoot 'run'
 New-Item -ItemType Directory -Force -Path $LogDir, $RunDir | Out-Null
@@ -246,6 +249,9 @@ Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'Backend\eureka-serv
 Start-ServiceProcess -Name 'eureka-2' -Dir (Join-Path $Root 'Backend\ms2-participants\eureka-server') -Port 8762 -RunArgs '--spring.profiles.active=peer2'
 [void](Wait-Service -Name 'eureka-2' -Label 'Eureka peer2' -Port 8762)
 
+Start-ServiceProcess -Name 'api-gateway' -Dir (Join-Path $Root 'Backend\api-gateway') -Port $GatewayPort
+[void](Wait-Service -Name 'api-gateway' -Label 'API Gateway' -Port $GatewayPort)
+
 Start-ServiceProcess -Name 'ms1-challenges' -Dir (Join-Path $Root 'Backend\ms1-challenges') -Port 8081
 Start-ServiceProcess -Name 'ms2-participants-1' -Dir (Join-Path $Root 'Backend\ms2-participants') -Port 8082
 Start-ServiceProcess -Name 'ms2-participants-2' -Dir (Join-Path $Root 'Backend\ms2-participants') -Port 8092 -RunArgs '--server.port=8092'
@@ -282,6 +288,7 @@ Write-Host ''
 Write-Step 'services requested:'
 Write-Host '  Eureka 8761     http://localhost:8761  (registry: http://localhost:8761/eureka/apps)'
 Write-Host '  Eureka 8762     http://localhost:8762  (peer2 from Backend\ms2-participants\eureka-server)'
+Write-Host "  Gateway ($GatewayPort)  health http://localhost:$GatewayPort/actuator/health  docs http://localhost:$GatewayPort/swagger-ui.html"
 Write-Host '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html'
 Write-Host '  MS1 (8091)      fallback health http://localhost:8091/actuator/health'
 Write-Host '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html'
