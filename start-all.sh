@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
-#   Eureka peer1 (8761) + peer2 (8762)
+#   Eureka (8761)
 #   MS4 Evaluation (8084, 8087)
 #   MS3 Soumission (8083)
 #   MS5 Verification (8085)
@@ -190,11 +190,8 @@ if (( SKIP_DB == 0 )); then
 fi
 
 # Discovery server first, so clients can register as soon as it is up.
-# Two replicated peers: peer1 = localhost:8761, peer2 = 127.0.0.1:8762 (see application-peerX.properties)
 start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 "--spring.profiles.active=peer1"
-start_service eureka-2 "$ROOT_DIR/Backend/eureka-server" 8762 "--spring.profiles.active=peer2"
-wait_service eureka-1 "Eureka peer1" 8761 || true
-wait_service eureka-2 "Eureka peer2" 8762 || true
+wait_service eureka-1 "Eureka" 8761 || true
 
 start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
 start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
@@ -212,8 +209,7 @@ wait_service ms6-reputation-2 "MS6 Reputation 2" 8096 || true
 
 printf '\n'
 info "services requested:"
-printf '  Eureka peer1    http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
-printf '  Eureka peer2    http://127.0.0.1:8762  (registry: http://127.0.0.1:8762/eureka/apps)\n'
+printf '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
 printf '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html\n'
 printf '  MS6 (8096)      health http://localhost:8096/actuator/health  docs http://localhost:8096/swagger-ui.html\n'
 printf '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html\n'
