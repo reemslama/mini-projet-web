@@ -1,18 +1,18 @@
 $kind: http-request
 description: |-
-  Read the developer profile.
-url: "{{baseUrl}}/api/developers/:id"
+  List the teams the created user belongs to (empty for a fresh profile).
+url: "{{baseUrl}}/api/users/:id/teams"
 method: GET
 headers:
   Accept: application/json
 pathVariables:
   - key: id
-    value: '{{developerId}}'
+    value: '{{userId}}'
     disabled: false
 scripts:
   - type: afterResponse
     code: |-
       pm.test('HTTP 200', () => pm.response.to.have.status(200));
-      pm.test('same developer', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('developerId')));
+      pm.test('returns a list', () => pm.expect(pm.response.json()).to.be.an('array'));
 settings: {}
-order: 2000
+order: 5000

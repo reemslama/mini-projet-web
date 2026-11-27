@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  Update the user name, bio and competences.
+url: "{{baseUrl}}/api/users/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "prenom": "Postman",
+      "nom": "Tester Updated",
+      "email": "postman.tester@arene.tn",
+      "pseudo": "postman_tester",
+      "githubUsername": "postman-tester",
+      "competences": [
+        "Java",
+        "Spring"
+      ],
+      "niveau": "JUNIOR",
+      "disponible": true,
+      "statut": "ACTIF",
+      "bio": "Updated by Postman"
+    }
+pathVariables:
+  - key: id
+    value: '{{userId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const user = pm.response.json();
+      pm.test('nom updated', () => pm.expect(user.nom).to.eql('Tester Updated'));
+      pm.test('competences updated', () => pm.expect(user.competences).to.include('Spring'));
+settings: {}
+order: 4000

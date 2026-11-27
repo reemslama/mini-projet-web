@@ -93,8 +93,8 @@ show_menu() {
     echo "       POSTMAN COLLECTION LINTER"
     echo "======================================"
     echo
-    echo "  1) Lint MS1 Challenges (contract only)"
-    echo "  2) Lint MS2 Participants (contract only)"
+    echo "  1) Lint MS1 Challenges"
+    echo "  2) Lint MS2 Participants"
     echo "  3) Lint MS3 Soumissions"
     echo "  4) Lint MS4 Evaluation"
     echo "  5) Lint MS5 Verification"
@@ -110,8 +110,8 @@ usage() {
 Usage: scripts/test-postman.sh [OPTION]
 
   --all     Lint all six collections (default when run without a terminal)
-  --ms1     Lint the MS1 Challenges collection (contract only)
-  --ms2     Lint the MS2 Participants collection (contract only)
+  --ms1     Lint the MS1 Challenges collection
+  --ms2     Lint the MS2 Participants collection
   --ms3     Lint the MS3 Soumissions collection
   --ms4     Lint the MS4 Evaluation collection
   --ms5     Lint the MS5 Verification collection

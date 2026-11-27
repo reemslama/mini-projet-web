@@ -1,0 +1,34 @@
+$kind: http-request
+description: |-
+  Create a developer profile through the implemented /api/users endpoint.
+url: "{{baseUrl}}/api/users"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "prenom": "Postman",
+      "nom": "Tester",
+      "email": "postman.tester@arene.tn",
+      "pseudo": "postman_tester",
+      "githubUsername": "postman-tester",
+      "competences": [
+        "Java"
+      ],
+      "niveau": "JUNIOR",
+      "disponible": true,
+      "statut": "ACTIF"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      const user = pm.response.json();
+      pm.test('user has an id', () => pm.expect(user.id).to.be.a('string'));
+      pm.test('pseudo matches', () => pm.expect(user.pseudo).to.eql('postman_tester'));
+      pm.collectionVariables.set('userId', user.id);
+settings: {}
+order: 1000
