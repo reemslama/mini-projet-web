@@ -1,0 +1,31 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/submissions"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "challengeId": "{{challengeId}}",
+      "applicantId": "{{applicantId}}",
+      "repoUrl": "https://github.com/example/arena-solution.git",
+      "branch": "main"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 created', () => pm.response.to.have.status(201));
+      const submission = pm.response.json();
+      pm.test('id is a UUID', () => pm.expect(submission.id).to.match(/^[0-9a-f-]{36}$/i));
+      pm.test('starts as DRAFT', () => pm.expect(submission.status).to.eql('DRAFT'));
+      pm.collectionVariables.set('submissionId', submission.id);
+settings: {}
+examples: ./.resources/Créer une soumission (brouillon).resources/examples
+order: 1000

@@ -1,0 +1,44 @@
+$kind: http-example
+name: ""
+request:
+  url: "{{baseUrl}}/api/submissions?challengeId=de33bc48-6019-d2e8-bf68-447d9d1557e5&status=<string>"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    challengeId: de33bc48-6019-d2e8-bf68-447d9d1557e5
+    status: <string>
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "challengeId": "a8178495-7b9d-877e-d383-49ea39b068e6",
+          "applicantId": "5bea91a5-b7db-8d9a-0d0b-1a57d72aef27",
+          "repoUrl": "http://IzhFmnQLNTtPCiMSiZNsFMwMEIv.qwgND26J",
+          "branch": "main",
+          "id": "f7de639a-ca04-4eb6-3926-da6b4e31bf8d",
+          "status": "<string>",
+          "commitSha": "string",
+          "submittedAt": "1957-03-05T05:33:30.742Z"
+        },
+        {
+          "challengeId": "85a0be55-d66f-3abe-350c-52446dc1c710",
+          "applicantId": "7ec8fe93-7bbb-8244-87ba-bd4b7f60352d",
+          "repoUrl": "https://QNIaQlHvqIDyvb.ovzbShqVEPiZJRbhoZEShqzg2V6Y6-q5Ks3CuBSRhTw-Jcoa-b,Bncm",
+          "branch": "main",
+          "id": "170e61e6-31ad-eede-ec0d-1327ab55c092",
+          "status": "<string>",
+          "commitSha": "string",
+          "submittedAt": "2023-09-17T20:05:10.695Z"
+        }
+      ]
+order: 1000

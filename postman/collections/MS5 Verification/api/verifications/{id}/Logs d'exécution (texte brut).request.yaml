@@ -1,0 +1,19 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/verifications/:id/logs"
+method: GET
+headers:
+  Accept: text/plain
+pathVariables:
+  - key: id
+    value: '{{verificationId}}'
+    disabled: false
+    description: "(Required) "
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('logs contain fixture runner', () => pm.expect(pm.response.text()).to.include('runner=local-fixture'));
+settings: {}
+examples: ./.resources/Logs d'exécution (texte brut).resources/examples
+order: 2000

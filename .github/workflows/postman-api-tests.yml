@@ -1,0 +1,78 @@
+name: Postman API tests (MS3 + MS5)
+
+# Local-only gates: no Postman account or POSTMAN_API_KEY is required.
+# Run evidence stays in this job's log and in the uploaded YAML reports.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Install Postman CLI
+        run: npm install -g postman-cli@1.94.0
+
+      # Structural gate: fails the job on invalid v3 collection entities.
+      - name: Lint collections
+        run: |
+          postman collection lint "postman/collections/MS3 Soumissions" -f error
+          postman collection lint "postman/collections/MS5 Verification" -f error
+
+      # Real services, no mocks: MS5 needs ~2s for its async worker before /logs.
+      - name: Start MS3 and MS5
+        run: |
+          nohup sh -c 'cd Backend/soumission && mvn -q spring-boot:run' > /tmp/ms3.log 2>&1 &
+          nohup sh -c 'cd Backend/ms5-verification && mvn -q spring-boot:run' > /tmp/ms5.log 2>&1 &
+          for port in 8083 8085; do
+            for i in $(seq 1 120); do
+              if curl -fsS "http://localhost:$port/actuator/health" > /dev/null; then
+                echo "service on $port is healthy"
+                break
+              fi
+              if [ "$i" -eq 120 ]; then
+                echo "service on $port did not become healthy"
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      # Behavioral gates. Exit codes are preserved: a failed pm.test fails the job.
+      - name: Run MS3 collection
+        run: |
+          postman collection run "postman/collections/MS3 Soumissions" \
+            --delay-request 500 --no-report-events --output postman-reports/ms3
+
+      - name: Run MS5 collection
+        run: |
+          postman collection run "postman/collections/MS5 Verification" \
+            --delay-request 3000 --no-report-events --output postman-reports/ms5
+
+      - name: Upload run reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-run-reports
+          path: postman-reports/
+          if-no-files-found: warn
+
+      - name: Service logs on failure
+        if: failure()
+        run: |
+          echo "=== MS3 ==="
+          tail -n 200 /tmp/ms3.log || true
+          echo "=== MS5 ==="
+          tail -n 200 /tmp/ms5.log || true

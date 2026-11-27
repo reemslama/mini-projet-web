@@ -1,0 +1,19 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/similarity/:submissionId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: submissionId
+    value: '{{submissionId}}'
+    disabled: false
+    description: "(Required) "
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('stored report found', () => pm.expect(pm.response.json().submissionId).to.eql(pm.collectionVariables.get('submissionId')));
+settings: {}
+examples: ./.resources/Rapport de similarité déjà calculé.resources/examples
+order: 2000

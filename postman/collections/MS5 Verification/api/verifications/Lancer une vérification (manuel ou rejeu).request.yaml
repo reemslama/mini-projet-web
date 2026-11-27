@@ -1,0 +1,31 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/verifications"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "submissionId": "{{submissionId}}",
+      "challengeId": "{{challengeId}}",
+      "repoUrl": "https://github.com/example/arena-solution.git",
+      "commitSha": "abc1234",
+      "testCommand": "mvn test"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('202 accepted', () => pm.response.to.have.status(202));
+      const verification = pm.response.json();
+      pm.test('verification id returned', () => pm.expect(verification.id).to.be.a('string'));
+      pm.collectionVariables.set('verificationId', verification.id);
+settings: {}
+examples: ./.resources/Lancer une vérification (manuel ou rejeu).resources/examples
+order: 1000

@@ -1,0 +1,44 @@
+$kind: http-example
+name: ""
+request:
+  url: "{{baseUrl}}/api/similarity/analyze"
+  method: POST
+  headers:
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+    - key: Accept
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "submissionId": "989d6a38-522f-a00a-6923-125ca57d094d",
+        "challengeId": "faaca5cd-dea0-2b21-69a5-bae62d7fa94b"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "submissionId": "7e6bff5b-9c5c-1bb8-06e1-0c346d9556e1",
+        "challengeId": "1a01b4df-d96b-17d1-157d-07f9e7892c42",
+        "maxSimilarity": 7826.351148542017,
+        "flagged": false,
+        "matches": [
+          {
+            "otherSubmissionId": "744032be-cc12-1111-aa53-c101888c0633",
+            "similarity": 3737.358225043863
+          },
+          {
+            "otherSubmissionId": "5497513b-c58d-ab7c-2501-95cc967fbcd5",
+            "similarity": 4892.723653465509
+          }
+        ],
+        "analyzedAt": "1974-06-24T01:45:59.388Z"
+      }
+order: 1000

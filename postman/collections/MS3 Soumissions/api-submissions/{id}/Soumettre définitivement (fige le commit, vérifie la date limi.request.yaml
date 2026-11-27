@@ -1,0 +1,28 @@
+$kind: http-request
+name: Soumettre définitivement (fige le commit, vérifie la date limite, émet submission.submitted)
+description: 'commitSha is required by the implementation although absent from the frozen contract.'
+url: "{{baseUrl}}/api/submissions/:id/submit?commitSha=abc1234"
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  - key: commitSha
+    value: abc1234
+    disabled: false
+pathVariables:
+  - key: id
+    value: '{{submissionId}}'
+    disabled: false
+    description: "(Required) "
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('status is SUBMITTED', () => pm.expect(pm.response.json().status).to.eql('SUBMITTED'));
+settings: {}
+examples: ./.resources/Soumettre définitivement (fige le commit, vérifie la date limi.resources/examples
+order: 2000

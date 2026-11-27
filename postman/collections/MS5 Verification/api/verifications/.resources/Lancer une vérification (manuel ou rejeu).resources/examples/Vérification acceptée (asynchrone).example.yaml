@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/verifications"
+  method: POST
+  headers:
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+    - key: Accept
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "submissionId": "e6d05c53-cea9-bd88-85fe-c7e72de26e04",
+        "challengeId": "eb37f92c-f6cd-6e9c-59dd-00536e357eee",
+        "repoUrl": "https://pyoHOYkcvQTkgcYCPCIDAb.pcvwK5EBtiNGnUUkoImQF",
+        "commitSha": "string",
+        "testCommand": "string"
+      }
+response:
+  statusCode: 202
+  statusText: Accepted
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "aa7b63ed-cdd6-7e01-378c-2052e497775b",
+        "submissionId": "fc058d81-88fd-d61a-25fe-d871289fdcf8",
+        "status": "COMPLETED",
+        "result": "FAIL",
+        "passed": 3197,
+        "failed": 6795,
+        "total": 9252,
+        "coverage": 8567.004969809204,
+        "durationMs": 7286,
+        "sandboxImage": "string",
+        "startedAt": "1984-07-25T10:42:40.563Z",
+        "finishedAt": "1960-01-18T13:07:11.035Z"
+      }
+order: 1000

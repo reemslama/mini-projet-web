@@ -1,0 +1,48 @@
+$kind: http-example
+name: ""
+request:
+  url: "{{baseUrl}}/api/submissions/:id/verdict"
+  method: PUT
+  headers:
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+    - key: Accept
+      value: application/json
+  pathVariables:
+    - key: id
+      value: de33bc48-6019-d2e8-bf68-447d9d1557e5
+      disabled: false
+      description: "(Required) "
+  body:
+    type: json
+    content: |-
+      {
+        "submissionId": "d39c02c2-9233-22ae-9b9e-6ce3c6f4b745",
+        "result": "FAIL",
+        "passed": 1272,
+        "failed": 3156,
+        "total": 508,
+        "coverage": 1061.5610470995307,
+        "logsUrl": "http://BHSldFeIrnfCNQuQdLlNPgC.brymDSUnwYAQWysEhm6q-fS4xvSkrQV4PQdlKiPWeuIuhDge85",
+        "verifiedAt": "1948-04-07T04:58:53.873Z"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "submissionId": "d39c02c2-9233-22ae-9b9e-6ce3c6f4b745",
+        "result": "FAIL",
+        "passed": 1272,
+        "failed": 3156,
+        "total": 508,
+        "coverage": 1061.5610470995307,
+        "logsUrl": "http://BHSldFeIrnfCNQuQdLlNPgC.brymDSUnwYAQWysEhm6q-fS4xvSkrQV4PQdlKiPWeuIuhDge85",
+        "verifiedAt": "1948-04-07T04:58:53.873Z"
+      }
+order: 1000

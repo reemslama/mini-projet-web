@@ -1,0 +1,38 @@
+$kind: http-example
+name: ""
+request:
+  url: "{{baseUrl}}/api/verifications/:id"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: 84f9e0e7-52a6-78a9-5c9c-a6772392e513
+      disabled: false
+      description: "(Required) "
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "aa7b63ed-cdd6-7e01-378c-2052e497775b",
+        "submissionId": "fc058d81-88fd-d61a-25fe-d871289fdcf8",
+        "status": "COMPLETED",
+        "result": "FAIL",
+        "passed": 3197,
+        "failed": 6795,
+        "total": 9252,
+        "coverage": 8567.004969809204,
+        "durationMs": 7286,
+        "sandboxImage": "string",
+        "startedAt": "1984-07-25T10:42:40.563Z",
+        "finishedAt": "1960-01-18T13:07:11.035Z"
+      }
+order: 1000

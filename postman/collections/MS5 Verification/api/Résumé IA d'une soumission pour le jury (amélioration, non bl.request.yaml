@@ -1,0 +1,24 @@
+$kind: http-request
+name: Résumé IA d'une soumission pour le jury (amélioration, non bloquant)
+description: ""
+url: "{{baseUrl}}/api/ai/summarize/:submissionId"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: submissionId
+    value: '{{submissionId}}'
+    disabled: false
+    description: "(Required) "
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('503 while AI is disabled', () => pm.response.to.have.status(503));
+      pm.test('error body reports 503', () => pm.expect(pm.response.json().status).to.eql(503));
+settings: {}
+examples: ./.resources/Résumé IA d'une soumission pour le jury (amélioration, non bl.resources/examples
+order: 3000

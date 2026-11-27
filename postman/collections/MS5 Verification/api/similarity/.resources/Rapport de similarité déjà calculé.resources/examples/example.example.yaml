@@ -1,0 +1,41 @@
+$kind: http-example
+name: ""
+request:
+  url: "{{baseUrl}}/api/similarity/:submissionId"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: submissionId
+      value: 84f9e0e7-52a6-78a9-5c9c-a6772392e513
+      disabled: false
+      description: "(Required) "
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "submissionId": "dcdc55ff-a462-c90e-f0a8-1e8d7e4e4039",
+        "challengeId": "a5a5dd96-2c29-6fa6-537b-1ac3dfcf632c",
+        "maxSimilarity": 7567.02778628096,
+        "flagged": true,
+        "matches": [
+          {
+            "otherSubmissionId": "c842a0b3-2145-ab1b-5fb5-09ddf4300e76",
+            "similarity": 6620.648566167802
+          },
+          {
+            "otherSubmissionId": "9a7a37b6-12d5-b7ea-557d-36160087d3a6",
+            "similarity": 8200.164907611907
+          }
+        ],
+        "analyzedAt": "1952-03-12T03:26:00.172Z"
+      }
+order: 1000
