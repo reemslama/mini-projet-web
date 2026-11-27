@@ -16,6 +16,7 @@
         <module>Backend/eureka-server</module>
         <module>Backend/ms4-evaluation</module>
         <module>Backend/ms5-verification</module>
+        <module>Backend/ms6-reputation</module>
     </modules>
 
 </project>

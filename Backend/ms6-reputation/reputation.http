@@ -1,0 +1,61 @@
+### MS6 Reputation - requetes de test (IntelliJ HTTP Client)
+@host = http://localhost:8086
+@dev = 11111111-1111-1111-1111-111111111111
+
+### Contrat : reputation d'un developpeur
+GET {{host}}/api/developers/{{dev}}/reputation
+
+### Contrat : badges
+GET {{host}}/api/developers/{{dev}}/badges
+
+### Contrat : classement (filtrable par competence)
+GET {{host}}/api/rankings?skill=java&page=0&size=20
+
+### Contrat : ingestion d'evenement (202 APPLIED, puis DUPLICATE_IGNORED si renvoye)
+POST {{host}}/api/reputation/events
+Content-Type: application/json
+
+{ "type": "CHALLENGE_WON", "developerId": "33333333-3333-3333-3333-333333333333",
+  "challengeId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "weight": 250 }
+
+### CRUD : liste des profils
+GET {{host}}/api/reputation/profiles
+
+### CRUD : creer un profil (201, 409 si developerId existe deja)
+POST {{host}}/api/reputation/profiles
+Content-Type: application/json
+
+{ "developerId": "44444444-4444-4444-4444-444444444444", "displayName": "nouveau.dev", "skills": ["python"] }
+
+### CRUD : lire un profil
+GET {{host}}/api/reputation/profiles/1
+
+### CRUD : modifier un profil
+PUT {{host}}/api/reputation/profiles/1
+Content-Type: application/json
+
+{ "developerId": "{{dev}}", "displayName": "amine.dev", "skills": ["java", "spring", "docker"] }
+
+### CRUD : supprimer un profil (204)
+DELETE {{host}}/api/reputation/profiles/2
+
+### Association : attribuer un badge manuellement
+POST {{host}}/api/developers/{{dev}}/badges
+Content-Type: application/json
+
+{ "code": "MENTOR", "label": "Aide la communaute" }
+
+### Association : historique des evenements
+GET {{host}}/api/developers/{{dev}}/events
+
+### Quelle instance repond ? (8086 ou 8096)
+GET {{host}}/api/reputation/instance
+
+### Actuator
+GET {{host}}/actuator/health
+###
+GET {{host}}/actuator/info
+###
+GET {{host}}/actuator/metrics/http.server.requests
+###
+GET {{host}}/actuator/loggers/tn.arene.reputation

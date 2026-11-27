@@ -26,6 +26,59 @@ Infrastructure partagée : API Gateway, Keycloak, Eureka, Docker / Compose, Fron
 Java 21 + Spring Boot, Spring Cloud Gateway, Eureka, Keycloak (OIDC / JWT), OpenFeign, RabbitMQ
 (Spring Cloud Stream), H2 / MySQL / PostgreSQL + pgvector, Docker / Compose, Angular 21 (Node 22).
 
+## Équipe
+
+| Membre | Responsabilité |
+| --- | --- |
+| Chaima Dahdouh | MS1 · Challenges |
+| Naima Hadwej | MS2 · Participants |
+| Amine Ichaoui | MS3 · Soumissions |
+| Rim Slama | MS4 · Évaluation |
+| Jihed Ramedi | MS6 · Réputation |
+| Toute l'équipe | MS5 · Vérification, Eureka, Gateway, Keycloak, Docker, Frontend |
+
+## Découverte de services (Eureka) — 2 instances répliquées
+
+| Composant | Port(s) | Nom dans Eureka |
+| --- | --- | --- |
+| Eureka peer1 | 8761 (`localhost`) | EUREKA-SERVER |
+| Eureka peer2 | 8762 (`127.0.0.1`) | EUREKA-SERVER |
+| MS3 Soumissions | 8083 | MS3-SOUMISSIONS |
+| MS4 Évaluation (x2) | 8084 / 8087 | MS4-EVALUATION |
+| MS5 Vérification | 8085 | MS5-VERIFICATION |
+| MS6 Réputation (x2) | 8086 / 8096 | MS6-REPUTATION |
+
+- Les deux serveurs Eureka se répliquent mutuellement (profils `peer1` / `peer2`) : chaque dashboard
+  affiche tous les microservices, et l'autre peer apparaît dans **available-replicas**.
+- Deux peers sur une même machine doivent avoir des hostnames différents : on utilise `localhost`
+  et `127.0.0.1`, donc **aucune modification du fichier hosts n'est nécessaire**.
+- Chaque client déclare les deux serveurs :
+  `eureka.client.service-url.defaultZone=http://localhost:8761/eureka/,http://127.0.0.1:8762/eureka/`
+- Les MS les plus sollicités (MS4 et MS6) tournent en 2 instances sur des ports différents.
+
+### Lancement
+
+```bash
+./start-all.sh        # Linux / macOS
+start-all.bat         # Windows
+```
+
+Ou dans IntelliJ : `EurekaServerApplication` avec *Active profiles* = `peer1`, puis une copie avec `peer2`,
+puis chaque microservice (2e instance : *VM options* `-Dserver.port=8096`).
+
+Dashboards : http://localhost:8761 et http://127.0.0.1:8762
+
+### Captures
+
+![Dashboard Eureka peer1](docs/screenshots/eureka-peer1.png)
+![Dashboard Eureka peer2](docs/screenshots/eureka-peer2.png)
+
+Actuator (MS6) :
+
+![health](docs/screenshots/actuator-health.png)
+![info](docs/screenshots/actuator-info.png)
+![metrics](docs/screenshots/actuator-metrics.png)
+
 ## Documentation
 
 - `docs/Document-technique.md` — document technique.
