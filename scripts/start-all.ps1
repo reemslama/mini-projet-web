@@ -2,9 +2,10 @@
 .SYNOPSIS
     Launches all backend services of the Arène project.
 .DESCRIPTION
-    Eureka peer1 (8761) and peer2 (8762), MS1 Challenges (8081),
-    MS2 Participants (8082, 8092), MS3 Soumission (8083),
-    MS4 Evaluation (8084, 8087), MS5 Verification (8085), MS6 Reputation (8086, 8096).
+    Eureka peer1 (8761) and peer2 (8762), MS1 Challenges (8081, 8091),
+    MS2 Participants (8082, 8092), MS3 Soumission (8083, 8093),
+    MS4 Evaluation (8084, 8087), MS5 Verification (8085, 8095),
+    MS6 Reputation (8086, 8096).
     Starts MySQL via Docker when it is not already running. MS2 and MS4 need MySQL.
 .EXAMPLE
     scripts\start-all.bat
@@ -255,13 +256,25 @@ Start-ServiceProcess -Name 'ms5-verification' -Dir (Join-Path $Root 'Backend\ms5
 Start-ServiceProcess -Name 'ms6-reputation-1' -Dir (Join-Path $Root 'Backend\ms6-reputation') -Port 8086 -RunArgs '--server.port=8086'
 Start-ServiceProcess -Name 'ms6-reputation-2' -Dir (Join-Path $Root 'Backend\ms6-reputation') -Port 8096 -RunArgs '--server.port=8096'
 
+# Fallback instances: wait for the primary before starting a second Maven
+# process in the same directory.
 [void](Wait-Service -Name 'ms1-challenges' -Label 'MS1 Challenges' -Port 8081)
+Start-ServiceProcess -Name 'ms1-challenges-2' -Dir (Join-Path $Root 'Backend\ms1-challenges') -Port 8091 -RunArgs '--server.port=8091'
+[void](Wait-Service -Name 'ms1-challenges-2' -Label 'MS1 Challenges fallback' -Port 8091)
+
 [void](Wait-Service -Name 'ms2-participants-1' -Label 'MS2 Participants 1' -Port 8082)
 [void](Wait-Service -Name 'ms2-participants-2' -Label 'MS2 Participants 2' -Port 8092)
 [void](Wait-Service -Name 'ms4-evaluation-1' -Label 'MS4 Evaluation 1' -Port 8084)
 [void](Wait-Service -Name 'ms4-evaluation-2' -Label 'MS4 Evaluation 2' -Port 8087)
+
 [void](Wait-Service -Name 'ms3-soumission' -Label 'MS3 Soumission' -Port 8083)
+Start-ServiceProcess -Name 'ms3-soumission-2' -Dir (Join-Path $Root 'Backend\soumission') -Port 8093 -RunArgs '--server.port=8093'
+[void](Wait-Service -Name 'ms3-soumission-2' -Label 'MS3 Soumission fallback' -Port 8093)
+
 [void](Wait-Service -Name 'ms5-verification' -Label 'MS5 Verification' -Port 8085)
+Start-ServiceProcess -Name 'ms5-verification-2' -Dir (Join-Path $Root 'Backend\ms5-verification') -Port 8095 -RunArgs '--server.port=8095'
+[void](Wait-Service -Name 'ms5-verification-2' -Label 'MS5 Verification fallback' -Port 8095)
+
 [void](Wait-Service -Name 'ms6-reputation-1' -Label 'MS6 Reputation 1' -Port 8086)
 [void](Wait-Service -Name 'ms6-reputation-2' -Label 'MS6 Reputation 2' -Port 8096)
 
@@ -270,6 +283,7 @@ Write-Step 'services requested:'
 Write-Host '  Eureka 8761     http://localhost:8761  (registry: http://localhost:8761/eureka/apps)'
 Write-Host '  Eureka 8762     http://localhost:8762  (peer2 from Backend\ms2-participants\eureka-server)'
 Write-Host '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html'
+Write-Host '  MS1 (8091)      fallback health http://localhost:8091/actuator/health'
 Write-Host '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html'
 Write-Host '  MS2 (8092)      health http://localhost:8092/actuator/health'
 Write-Host '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html'
@@ -277,7 +291,9 @@ Write-Host '  MS6 (8096)      health http://localhost:8096/actuator/health  docs
 Write-Host '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html'
 Write-Host '  MS4 (8087)      health http://localhost:8087/actuator/health  docs http://localhost:8087/swagger-ui.html'
 Write-Host '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html'
+Write-Host '  MS3 (8093)      fallback health http://localhost:8093/actuator/health'
 Write-Host '  MS5 (8085)      health http://localhost:8085/actuator/health  docs http://localhost:8085/swagger-ui.html'
+Write-Host '  MS5 (8095)      fallback health http://localhost:8095/actuator/health'
 Write-Host '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION'
 Write-Host "  MS5 requests    $Root\Backend\ms5-verification\verifications.http"
 Write-Host "  Logs            $LogDir"
