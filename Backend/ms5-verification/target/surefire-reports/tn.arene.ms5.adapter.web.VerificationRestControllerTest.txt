@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: tn.arene.ms5.adapter.web.VerificationRestControllerTest
--------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.672 s -- in tn.arene.ms5.adapter.web.VerificationRestControllerTest

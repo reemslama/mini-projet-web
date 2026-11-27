@@ -3,5 +3,10 @@
 /scripts/logs/
 /scripts/run/
 /postman-reports/
+<<<<<<< HEAD
 /.vscode
 /.idea
+=======
+/.idea/
+target/
+>>>>>>> 952a600 (target & .idea tba3thou lel .gitignore)
