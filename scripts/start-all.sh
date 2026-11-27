@@ -194,6 +194,8 @@ fi
 start_service eureka-1 "$REPO_ROOT/Backend/eureka-server" 8761 "--spring.profiles.active=peer1"
 wait_service eureka-1 "Eureka" 8761 || true
 
+start_service ms1-challenges "$REPO_ROOT/Backend/ms1-challenges" 8081 ""
+start_service ms2-participants "$REPO_ROOT/Backend/ms2-participants" 8082 ""
 start_service ms4-evaluation-1 "$REPO_ROOT/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
 start_service ms4-evaluation-2 "$REPO_ROOT/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
 start_service ms3-soumission "$REPO_ROOT/Backend/soumission" 8083 ""
@@ -201,6 +203,8 @@ start_service ms5-verification "$REPO_ROOT/Backend/ms5-verification" 8085 ""
 start_service ms6-reputation-1 "$REPO_ROOT/Backend/ms6-reputation" 8086 "--server.port=8086"
 start_service ms6-reputation-2 "$REPO_ROOT/Backend/ms6-reputation" 8096 "--server.port=8096"
 
+wait_service ms1-challenges "MS1 Challenges" 8081 || true
+wait_service ms2-participants "MS2 Participants" 8082 || true
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
 wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8087 || true
 wait_service ms3-soumission "MS3 Soumission" 8083 || true
@@ -211,6 +215,8 @@ wait_service ms6-reputation-2 "MS6 Reputation 2" 8096 || true
 printf '\n'
 info "services requested:"
 printf '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
+printf '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html\n'
+printf '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html\n'
 printf '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html\n'
 printf '  MS6 (8096)      health http://localhost:8096/actuator/health  docs http://localhost:8096/swagger-ui.html\n'
 printf '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html\n'

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Search the challenge catalogue. The implementation returns a paginated
+  PageResponse object, while the frozen contract declares a bare array.
+url: "{{baseUrl}}/api/challenges?tag=java&status=PUBLISHED&page=0&size=20"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: tag
+    value: java
+  - key: status
+    value: PUBLISHED
+  - key: page
+    value: '0'
+  - key: size
+    value: '20'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const page = pm.response.json();
+      pm.test('returns a page of challenges', () => {
+        pm.expect(page.content).to.be.an('array');
+        pm.expect(page.totalElements).to.be.a('number');
+      });
+settings: {}
+order: 2000

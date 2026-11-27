@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  List all users; the created profile should be present.
+url: "{{baseUrl}}/api/users"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('contains created user', () => pm.expect(pm.response.json().map(u => u.id)).to.include(pm.collectionVariables.get('userId')));
+settings: {}
+order: 2000

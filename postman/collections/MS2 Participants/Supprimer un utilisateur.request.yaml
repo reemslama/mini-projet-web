@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Delete the user created by this run.
+url: "{{baseUrl}}/api/users/:id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{userId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 204', () => pm.response.to.have.status(204));
+settings: {}
+order: 7000
