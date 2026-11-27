@@ -2,9 +2,10 @@
 .SYNOPSIS
     Launches all backend services of the Arène project.
 .DESCRIPTION
-    Eureka (8761), MS4 Evaluation (8084, 8087),
-    MS3 Soumission (8083), MS5 Verification (8085), MS6 Reputation (8086, 8096).
-    Starts MySQL via Docker when it is not already running.
+    Eureka peer1 (8761) and peer2 (8762), MS1 Challenges (8081),
+    MS2 Participants (8082, 8092), MS3 Soumission (8083),
+    MS4 Evaluation (8084, 8087), MS5 Verification (8085), MS6 Reputation (8086, 8096).
+    Starts MySQL via Docker when it is not already running. MS2 and MS4 need MySQL.
 .EXAMPLE
     .\start-all.bat
     .\start-all.ps1 -SkipDb
@@ -133,7 +134,7 @@ function Ensure-Mysql {
     }
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
         Write-WarnMsg 'MySQL is not running on port 3306 and Docker is unavailable.'
-        Write-WarnMsg 'MS4 needs MySQL (database forge_evaluation, user root, empty password).'
+        Write-WarnMsg 'MS2 and MS4 need MySQL (root, empty password; databases are created automatically).'
         return $false
     }
 
@@ -239,8 +240,13 @@ if (-not $SkipDb) {
 
 # Discovery server first, so clients can register as soon as it is up.
 Start-ServiceProcess -Name 'eureka-1' -Dir (Join-Path $Root 'Backend\eureka-server') -Port 8761 -RunArgs '--spring.profiles.active=peer1'
-[void](Wait-Service -Name 'eureka-1' -Label 'Eureka' -Port 8761)
+[void](Wait-Service -Name 'eureka-1' -Label 'Eureka peer1' -Port 8761)
+Start-ServiceProcess -Name 'eureka-2' -Dir (Join-Path $Root 'Backend\ms2-participants\eureka-server') -Port 8762 -RunArgs '--spring.profiles.active=peer2'
+[void](Wait-Service -Name 'eureka-2' -Label 'Eureka peer2' -Port 8762)
 
+Start-ServiceProcess -Name 'ms1-challenges' -Dir (Join-Path $Root 'Backend\ms1-challenges') -Port 8081
+Start-ServiceProcess -Name 'ms2-participants-1' -Dir (Join-Path $Root 'Backend\ms2-participants') -Port 8082
+Start-ServiceProcess -Name 'ms2-participants-2' -Dir (Join-Path $Root 'Backend\ms2-participants') -Port 8092 -RunArgs '--server.port=8092'
 Start-ServiceProcess -Name 'ms4-evaluation-1' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8084 -RunArgs ("--server.port=8084 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms4-evaluation-2' -Dir (Join-Path $Root 'Backend\ms4-evaluation') -Port 8087 -RunArgs ("--server.port=8087 $dbDialectArg").Trim()
 Start-ServiceProcess -Name 'ms3-soumission' -Dir (Join-Path $Root 'Backend\soumission') -Port 8083
@@ -248,6 +254,9 @@ Start-ServiceProcess -Name 'ms5-verification' -Dir (Join-Path $Root 'Backend\ms5
 Start-ServiceProcess -Name 'ms6-reputation-1' -Dir (Join-Path $Root 'Backend\ms6-reputation') -Port 8086 -RunArgs '--server.port=8086'
 Start-ServiceProcess -Name 'ms6-reputation-2' -Dir (Join-Path $Root 'Backend\ms6-reputation') -Port 8096 -RunArgs '--server.port=8096'
 
+[void](Wait-Service -Name 'ms1-challenges' -Label 'MS1 Challenges' -Port 8081)
+[void](Wait-Service -Name 'ms2-participants-1' -Label 'MS2 Participants 1' -Port 8082)
+[void](Wait-Service -Name 'ms2-participants-2' -Label 'MS2 Participants 2' -Port 8092)
 [void](Wait-Service -Name 'ms4-evaluation-1' -Label 'MS4 Evaluation 1' -Port 8084)
 [void](Wait-Service -Name 'ms4-evaluation-2' -Label 'MS4 Evaluation 2' -Port 8087)
 [void](Wait-Service -Name 'ms3-soumission' -Label 'MS3 Soumission' -Port 8083)
@@ -257,7 +266,11 @@ Start-ServiceProcess -Name 'ms6-reputation-2' -Dir (Join-Path $Root 'Backend\ms6
 
 Write-Host ''
 Write-Step 'services requested:'
-Write-Host '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)'
+Write-Host '  Eureka 8761     http://localhost:8761  (registry: http://localhost:8761/eureka/apps)'
+Write-Host '  Eureka 8762     http://localhost:8762  (peer2 from Backend\ms2-participants\eureka-server)'
+Write-Host '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html'
+Write-Host '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html'
+Write-Host '  MS2 (8092)      health http://localhost:8092/actuator/health'
 Write-Host '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html'
 Write-Host '  MS6 (8096)      health http://localhost:8096/actuator/health  docs http://localhost:8096/swagger-ui.html'
 Write-Host '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html'

@@ -15,7 +15,7 @@
 	<description>Arène · MS5 Vérification — bac à sable, verdict déterministe, similarité, IA optionnelle</description>
 
 	<properties>
-		<java.version>21</java.version>
+		<java.version>17</java.version>
 		<spring-cloud.version>2025.1.5</spring-cloud.version>
 	</properties>
 
