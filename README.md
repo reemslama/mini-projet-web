@@ -56,8 +56,8 @@ Java 21 + Spring Boot, Spring Cloud Gateway, Eureka, Keycloak (OIDC / JWT), Open
 ### Lancement
 
 ```bash
-./start-all.sh        # Linux / macOS
-start-all.bat         # Windows
+scripts/start-all.sh        # Linux / macOS
+scripts/start-all.bat       # Windows
 ```
 
 Ou dans IntelliJ : `EurekaServerApplication` avec *Active profiles* = `peer1` (profil standalone),

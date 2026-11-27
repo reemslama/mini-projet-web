@@ -1,0 +1,24 @@
+$kind: http-request
+name: État / résultat d'une vérification
+description: ""
+url: "{{baseUrl}}/api/verifications/:id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{verificationId}}'
+    disabled: false
+    description: "(Required) "
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const verification = pm.response.json();
+      pm.test('worker completed with PASS', () => {
+        pm.expect(verification.status).to.eql('COMPLETED');
+        pm.expect(verification.result).to.eql('PASS');
+      });
+settings: {}
+examples: ./.resources/État - résultat d'une vérification.resources/examples
+order: 1000

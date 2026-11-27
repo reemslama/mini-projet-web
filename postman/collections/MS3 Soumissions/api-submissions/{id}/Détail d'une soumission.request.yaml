@@ -1,0 +1,19 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/submissions/:id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{submissionId}}'
+    disabled: false
+    description: "(Required) "
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('same submission', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('submissionId')));
+settings: {}
+examples: ./.resources/Détail d'une soumission.resources/examples
+order: 1000

@@ -1,0 +1,10 @@
+$kind: collection
+description: |-
+  Contrat ms3-submissions.openapi.yaml. Tests locaux :
+  postman collection run "postman/collections/MS3 Soumissions" --env-var baseUrl=http://localhost:8083
+variables:
+  baseUrl: http://localhost:8083
+  bearerToken: ""
+  challengeId: '11111111-1111-1111-1111-111111111111'
+  applicantId: '22222222-2222-2222-2222-222222222222'
+  submissionId: '00000000-0000-0000-0000-000000000000'

@@ -1,0 +1,9 @@
+$kind: collection
+description: |
+  Technologie avancée : exécution des tests d'acceptation en bac à sable, anti-plagiat par similarité vectorielle (pgvector), IA d'appoint.
+variables:
+  baseUrl: http://localhost:8085
+  bearerToken: ""
+  submissionId: '33333333-3333-3333-3333-333333333333'
+  challengeId: '11111111-1111-1111-1111-111111111111'
+  verificationId: '00000000-0000-0000-0000-000000000000'

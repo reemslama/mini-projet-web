@@ -7,15 +7,16 @@
 #   MS6 Reputation (8086, 8096)
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="$ROOT_DIR/logs"
-RUN_DIR="$ROOT_DIR/run"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOG_DIR="$SCRIPT_DIR/logs"
+RUN_DIR="$SCRIPT_DIR/run"
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-300}"
 SKIP_DB=0
 
 usage() {
     cat <<EOF
-Usage: ./start-all.sh [--skip-db]
+Usage: scripts/start-all.sh [--skip-db]
 
   --skip-db      Do not check/start MySQL (use when MS4 is not needed).
 
@@ -174,7 +175,7 @@ if ! command -v java >/dev/null 2>&1; then
     exit 1
 fi
 
-info "project root: $ROOT_DIR"
+info "project root: $REPO_ROOT"
 ensure_host_aliases || {
     warn "Eureka requires the eureka1 host alias."
     exit 1
@@ -190,15 +191,15 @@ if (( SKIP_DB == 0 )); then
 fi
 
 # Discovery server first, so clients can register as soon as it is up.
-start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 "--spring.profiles.active=peer1"
+start_service eureka-1 "$REPO_ROOT/Backend/eureka-server" 8761 "--spring.profiles.active=peer1"
 wait_service eureka-1 "Eureka" 8761 || true
 
-start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
-start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
-start_service ms3-soumission "$ROOT_DIR/Backend/soumission" 8083 ""
-start_service ms5-verification "$ROOT_DIR/Backend/ms5-verification" 8085 ""
-start_service ms6-reputation-1 "$ROOT_DIR/Backend/ms6-reputation" 8086 "--server.port=8086"
-start_service ms6-reputation-2 "$ROOT_DIR/Backend/ms6-reputation" 8096 "--server.port=8096"
+start_service ms4-evaluation-1 "$REPO_ROOT/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
+start_service ms4-evaluation-2 "$REPO_ROOT/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
+start_service ms3-soumission "$REPO_ROOT/Backend/soumission" 8083 ""
+start_service ms5-verification "$REPO_ROOT/Backend/ms5-verification" 8085 ""
+start_service ms6-reputation-1 "$REPO_ROOT/Backend/ms6-reputation" 8086 "--server.port=8086"
+start_service ms6-reputation-2 "$REPO_ROOT/Backend/ms6-reputation" 8096 "--server.port=8096"
 
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
 wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8087 || true
@@ -217,6 +218,6 @@ printf '  MS4 (8087)      health http://localhost:8087/actuator/health  docs htt
 printf '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html\n'
 printf '  MS5 (8085)      health http://localhost:8085/actuator/health  docs http://localhost:8085/swagger-ui.html\n'
 printf '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION\n'
-printf '  MS5 requests    %s/Backend/ms5-verification/verifications.http\n' "$ROOT_DIR"
+printf '  MS5 requests    %s/Backend/ms5-verification/verifications.http\n' "$REPO_ROOT"
 printf '  Logs            %s\n' "$LOG_DIR"
-printf '  Stop all        ./stop-all.sh\n'
+printf '  Stop all        scripts/stop-all.sh\n'

@@ -1,0 +1,38 @@
+$kind: http-example
+name: ""
+request:
+  url: "{{baseUrl}}/api/submissions/:id/submit"
+  method: POST
+  headers:
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+    - key: Accept
+      value: application/json
+  pathVariables:
+    - key: id
+      value: de33bc48-6019-d2e8-bf68-447d9d1557e5
+      disabled: false
+      description: "(Required) "
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "challengeId": "a3e13383-955c-3cce-62a2-b3a767b513cd",
+        "applicantId": "075155e4-eef7-c927-2d08-4a0332751904",
+        "repoUrl": "https://wDZML.mvcpi8wmJsU8Q+aOfXko5Isy5rJAM9.oGopBRATYmeicPGrIYNXyhILZrLfC5pILIqIVL-+gx.b7bwGWxrQ+gNBw",
+        "branch": "main",
+        "id": "4ee9a87c-dc85-65fa-c42b-adbea358cd3d",
+        "status": "<string>",
+        "commitSha": "string",
+        "submittedAt": "1996-10-01T22:09:34.640Z"
+      }
+order: 1000

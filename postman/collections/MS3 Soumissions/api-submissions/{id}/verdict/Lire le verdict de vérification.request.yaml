@@ -1,0 +1,26 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/submissions/:id/verdict"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{submissionId}}'
+    disabled: false
+    description: "(Required) "
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const verdict = pm.response.json();
+      pm.test('verdict matches deposit', () => {
+        pm.expect(verdict.submissionId).to.eql(pm.collectionVariables.get('submissionId'));
+        pm.expect(verdict.result).to.eql('PASS');
+        pm.expect(verdict.passed).to.eql(8);
+        pm.expect(verdict.failed).to.eql(2);
+        pm.expect(verdict.total).to.eql(10);
+      });
+settings: {}
+examples: ./.resources/Lire le verdict de vérification.resources/examples
+order: 2000

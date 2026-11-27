@@ -6,8 +6,8 @@
     MS3 Soumission (8083), MS5 Verification (8085), MS6 Reputation (8086, 8096).
     Starts MySQL via Docker when it is not already running.
 .EXAMPLE
-    .\start-all.bat
-    .\start-all.ps1 -SkipDb
+    scripts\start-all.bat
+    scripts\start-all.ps1 -SkipDb
 #>
 param(
     [switch]$SkipDb,
@@ -15,9 +15,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Root = $PSScriptRoot
-$LogDir = Join-Path $Root 'logs'
-$RunDir = Join-Path $Root 'run'
+$ScriptRoot = $PSScriptRoot
+$Root = Split-Path -Parent $ScriptRoot
+$LogDir = Join-Path $ScriptRoot 'logs'
+$RunDir = Join-Path $ScriptRoot 'run'
 New-Item -ItemType Directory -Force -Path $LogDir, $RunDir | Out-Null
 
 function Write-Step {
@@ -267,4 +268,4 @@ Write-Host '  MS5 (8085)      health http://localhost:8085/actuator/health  docs
 Write-Host '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION'
 Write-Host "  MS5 requests    $Root\Backend\ms5-verification\verifications.http"
 Write-Host "  Logs            $LogDir"
-Write-Host '  Stop all        .\stop-all.bat'
+Write-Host '  Stop all        scripts\stop-all.bat'
