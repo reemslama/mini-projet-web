@@ -1,0 +1,71 @@
+classDiagram
+    direction LR
+    class Utilisateur {
+        +UUID id
+        +String prenom
+        +String nom
+        +String email
+        +String pseudo
+        +String githubUsername
+        +String telephone
+        +String pays
+        +String ville
+        +String bio
+        +Niveau niveau
+        +Set~String~ competences
+        +boolean disponible
+        +StatutCompte statut
+        +LocalDateTime dateInscription
+    }
+    class Equipe {
+        +UUID id
+        +String nom
+        +String description
+        +int tailleMax
+        +LocalDateTime dateCreation
+    }
+    class MembreEquipe {
+        +UUID id
+        +RoleEquipe role
+        +LocalDateTime dateAdhesion
+    }
+    class Candidature {
+        +UUID id
+        +UUID challengeId
+        +TypeCandidature type
+        +StatutCandidature statut
+        +String motivation
+        +LocalDateTime dateCandidature
+    }
+    class Niveau {
+        <<enumeration>>
+        DEBUTANT
+        JUNIOR
+        INTERMEDIAIRE
+        SENIOR
+        EXPERT
+    }
+    class RoleEquipe {
+        <<enumeration>>
+        CHEF
+        MEMBRE
+    }
+    class TypeCandidature {
+        <<enumeration>>
+        SOLO
+        EQUIPE
+    }
+    class StatutCandidature {
+        <<enumeration>>
+        EN_ATTENTE
+        VALIDEE
+        REJETEE
+        VERIFIEE
+        GAGNANTE
+    }
+
+    Utilisateur "1" -- "0..*" MembreEquipe : adhère
+    Equipe "1" *-- "1..*" MembreEquipe : composée de
+    Utilisateur "1" <-- "0..*" Equipe : chef
+    Utilisateur "1" <-- "0..*" Candidature : déposant
+    Equipe "0..1" <-- "0..*" Candidature : pour l'équipe
