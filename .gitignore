@@ -1,3 +1,5 @@
 /logs/
 /run/
+/scripts/logs/
+/scripts/run/
 /postman-reports/
