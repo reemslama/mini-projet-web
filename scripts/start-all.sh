@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
-#   Eureka (8761)
+#   Eureka peer1 (8761) and peer2 (8762)
+#   MS1 Challenges (8081, 8091), MS2 Participants (8082, 8092)
 #   MS4 Evaluation (8084, 8087)
-#   MS3 Soumission (8083)
-#   MS5 Verification (8085)
+#   MS3 Soumission (8083, 8093)
+#   MS5 Verification (8085, 8095)
 #   MS6 Reputation (8086, 8096)
 set -euo pipefail
 
@@ -11,6 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG_DIR="$SCRIPT_DIR/logs"
 RUN_DIR="$SCRIPT_DIR/run"
+MS2_DIR="$REPO_ROOT/Backend/ms2-participants"
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-300}"
 SKIP_DB=0
 
@@ -18,7 +20,7 @@ usage() {
     cat <<EOF
 Usage: scripts/start-all.sh [--skip-db]
 
-  --skip-db      Do not check/start MySQL (use when MS4 is not needed).
+  --skip-db      Do not check/start MySQL (use when MS2/MS4 are not needed).
 
 Environment:
   WAIT_TIMEOUT   Seconds to wait per service port (default: 300).
@@ -106,7 +108,7 @@ ensure_mysql() {
 
     if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
         warn "MySQL is not running on port 3306 and Docker is unavailable."
-        warn "MS4 needs MySQL (database forge_evaluation, user root, empty password)."
+        warn "MS2 and MS4 need MySQL (user root, empty password)."
         return 1
     fi
 
@@ -170,6 +172,49 @@ start_service() {
     info "started $name (PID $!, log: $LOG_DIR/$name.log)"
 }
 
+# Both MS2 instances run from one jar: starting two `mvn spring-boot:run`
+# processes in the same directory makes them fight over target/classes.
+ensure_ms2_jar() {
+    local jar
+    jar=$(find "$MS2_DIR/target" -maxdepth 1 -name 'ms2-participants-*.jar' \
+        ! -name '*original*' -print -quit 2>/dev/null || true)
+    if [[ -n "$jar" ]]; then
+        printf '%s' "$jar"
+        return 0
+    fi
+    info "building MS2 jar (shared by both instances)"
+    if ! ( cd "$MS2_DIR" && mvn -q -DskipTests package ) > "$LOG_DIR/ms2-build.log" 2>&1; then
+        warn "MS2 build failed (see $LOG_DIR/ms2-build.log)"
+        return 1
+    fi
+    jar=$(find "$MS2_DIR/target" -maxdepth 1 -name 'ms2-participants-*.jar' \
+        ! -name '*original*' -print -quit 2>/dev/null || true)
+    [[ -n "$jar" ]] || { warn "MS2 jar not found after build"; return 1; }
+    printf '%s' "$jar"
+}
+
+start_ms2_instance() {
+    local name="$1" port="$2" jar="$3"
+    local pid_file="$RUN_DIR/$name.pid" old_pid
+
+    if [[ -f "$pid_file" ]]; then
+        old_pid=$(cat "$pid_file")
+        if [[ "$old_pid" =~ ^[0-9]+$ ]] && kill -0 "$old_pid" 2>/dev/null; then
+            info "$name is already running (PID $old_pid)"
+            return 0
+        fi
+    fi
+    if port_open "$port"; then
+        warn "port $port is already in use; skipping $name"
+        return 0
+    fi
+
+    setsid java -jar "$jar" "--server.port=$port" $DB_DIALECT_ARG \
+        > "$LOG_DIR/$name.log" 2>&1 < /dev/null &
+    printf '%s\n' "$!" > "$pid_file"
+    info "started $name (PID $!, log: $LOG_DIR/$name.log)"
+}
+
 if ! command -v java >/dev/null 2>&1; then
     printf '[start-all] ERROR: Java is not installed or not on PATH.\n' >&2
     exit 1
@@ -184,18 +229,28 @@ ensure_host_aliases || {
 DB_DIALECT_ARG=''
 if (( SKIP_DB == 0 )); then
     if ! ensure_mysql; then
-        warn "continuing without MySQL; MS4 will report itself DOWN until a database is available"
+        warn "continuing without MySQL; MS2 and MS4 will fail to start until a database is available"
     else
         DB_DIALECT_ARG=$(detect_db_dialect_arg)
     fi
 fi
 
-# Discovery server first, so clients can register as soon as it is up.
+# Discovery servers first, so clients can register as soon as they are up.
 start_service eureka-1 "$REPO_ROOT/Backend/eureka-server" 8761 "--spring.profiles.active=peer1"
-wait_service eureka-1 "Eureka" 8761 || true
+wait_service eureka-1 "Eureka peer1" 8761 || true
+start_service eureka-2 "$REPO_ROOT/Backend/eureka-server" 8762 "--spring.profiles.active=peer2"
+wait_service eureka-2 "Eureka peer2" 8762 || true
 
 start_service ms1-challenges "$REPO_ROOT/Backend/ms1-challenges" 8081 ""
-start_service ms2-participants "$REPO_ROOT/Backend/ms2-participants" 8082 ""
+# Start MS2 instances sequentially: DataInitializer seeds only when the table is
+# empty, so launching both at once causes a duplicate-key failure on one of them.
+rm -f "$RUN_DIR/ms2-participants.pid"
+if MS2_JAR=$(ensure_ms2_jar); then
+    start_ms2_instance ms2-participants-1 8082 "$MS2_JAR"
+    wait_service ms2-participants-1 "MS2 Participants 1" 8082 || true
+    start_ms2_instance ms2-participants-2 8092 "$MS2_JAR"
+    wait_service ms2-participants-2 "MS2 Participants 2" 8092 || true
+fi
 start_service ms4-evaluation-1 "$REPO_ROOT/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
 start_service ms4-evaluation-2 "$REPO_ROOT/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
 start_service ms3-soumission "$REPO_ROOT/Backend/soumission" 8083 ""
@@ -203,26 +258,41 @@ start_service ms5-verification "$REPO_ROOT/Backend/ms5-verification" 8085 ""
 start_service ms6-reputation-1 "$REPO_ROOT/Backend/ms6-reputation" 8086 "--server.port=8086"
 start_service ms6-reputation-2 "$REPO_ROOT/Backend/ms6-reputation" 8096 "--server.port=8096"
 
+# Fallback instances: wait for the primary first so Maven has finished its
+# build in the shared source directory before the second process starts.
 wait_service ms1-challenges "MS1 Challenges" 8081 || true
-wait_service ms2-participants "MS2 Participants" 8082 || true
+start_service ms1-challenges-2 "$REPO_ROOT/Backend/ms1-challenges" 8091 "--server.port=8091"
+wait_service ms1-challenges-2 "MS1 Challenges fallback" 8091 || true
+
+wait_service ms3-soumission "MS3 Soumission" 8083 || true
+start_service ms3-soumission-2 "$REPO_ROOT/Backend/soumission" 8093 "--server.port=8093"
+wait_service ms3-soumission-2 "MS3 Soumission fallback" 8093 || true
+
+wait_service ms5-verification "MS5 Verification" 8085 || true
+start_service ms5-verification-2 "$REPO_ROOT/Backend/ms5-verification" 8095 "--server.port=8095"
+wait_service ms5-verification-2 "MS5 Verification fallback" 8095 || true
+
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
 wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8087 || true
-wait_service ms3-soumission "MS3 Soumission" 8083 || true
-wait_service ms5-verification "MS5 Verification" 8085 || true
 wait_service ms6-reputation-1 "MS6 Reputation 1" 8086 || true
 wait_service ms6-reputation-2 "MS6 Reputation 2" 8096 || true
 
 printf '\n'
 info "services requested:"
-printf '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
+printf '  Eureka 8761     http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
+printf '  Eureka 8762     http://localhost:8762  (peer2, profile peer2)\n'
 printf '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html\n'
+printf '  MS1 (8091)      fallback health http://localhost:8091/actuator/health\n'
 printf '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html\n'
+printf '  MS2 (8092)      health http://localhost:8092/actuator/health\n'
 printf '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html\n'
 printf '  MS6 (8096)      health http://localhost:8096/actuator/health  docs http://localhost:8096/swagger-ui.html\n'
 printf '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html\n'
 printf '  MS4 (8087)      health http://localhost:8087/actuator/health  docs http://localhost:8087/swagger-ui.html\n'
 printf '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html\n'
+printf '  MS3 (8093)      fallback health http://localhost:8093/actuator/health\n'
 printf '  MS5 (8085)      health http://localhost:8085/actuator/health  docs http://localhost:8085/swagger-ui.html\n'
+printf '  MS5 (8095)      fallback health http://localhost:8095/actuator/health\n'
 printf '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION\n'
 printf '  MS5 requests    %s/Backend/ms5-verification/verifications.http\n' "$REPO_ROOT"
 printf '  Logs            %s\n' "$LOG_DIR"
