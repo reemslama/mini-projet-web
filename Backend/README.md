@@ -8,6 +8,8 @@ Microservices du projet Arène (plateforme de hackathons & bounties).
 - `contracts/` — contrats OpenAPI.
 
 Détail par microservice dans le document technique et les diagrammes associés.
+La Gateway (`Backend/api-gateway`) expose le point d'entrée unique ; voir
+[`docs/api-gateway.md`](../docs/api-gateway.md).
 
 ## Supervision (Spring Boot Actuator)
 
@@ -34,10 +36,15 @@ Les microservices exposent une documentation interactive générée par springdo
 
 | Service | Swagger UI | Spécification JSON |
 | --- | --- | --- |
+| API Gateway (portail agrégé) | `http://localhost:8080/swagger-ui.html` | `http://localhost:8080/v3/api-docs` |
 | MS3 Soumission | `http://localhost:8083/swagger-ui.html` | `http://localhost:8083/v3/api-docs` |
 | MS4 Évaluation | `http://localhost:8084/swagger-ui.html` | `http://localhost:8084/v3/api-docs` |
 | MS5 Vérification | `http://localhost:8085/swagger-ui.html` | `http://localhost:8085/v3/api-docs` |
 | MS6 Réputation | `http://localhost:8086/swagger-ui.html` | `http://localhost:8086/v3/api-docs` |
+
+La Gateway peut utiliser un autre port en local (`GATEWAY_PORT=8088`). Les six specs sont
+alors agrégées sur `http://localhost:8088/swagger-ui.html` ; voir
+[`docs/api-gateway.md`](../docs/api-gateway.md).
 
 MS6 expose aussi `loggers` (`/actuator/loggers/tn.arene.reputation`) et un HealthIndicator
 personnalisé `reputationStore` visible dans `/actuator/health`. Requêtes de test :
