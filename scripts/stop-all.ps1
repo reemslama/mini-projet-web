@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Stops every service started by start-all.ps1.
+    Stops every service started by scripts\start-all.ps1.
 #>
 $ErrorActionPreference = 'Continue'
 $RunDir = Join-Path $PSScriptRoot 'run'

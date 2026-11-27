@@ -9,7 +9,7 @@ Blocks whose description starts with [SETUP] are skipped: they are fixtures for
 running the .http file manually, endpoint by endpoint, in an HTTP client.
 
 Usage (service must already be running):
-    ./start-all.sh
+    scripts/start-all.sh
     python3 Backend/soumission/e2e/run_http_e2e.py
     python3 Backend/soumission/e2e/run_http_e2e.py --base-url http://localhost:8083
 """
@@ -126,7 +126,7 @@ def run(path: Path, base_url=None, timeout=10):
 
     if not wait_for_service(host):
         print(f"MS3 is not reachable at {host}/actuator/health")
-        print("Start it with ./start-all.sh (or mvn spring-boot:run in Backend/soumission) first.")
+        print("Start it with scripts/start-all.sh (or mvn spring-boot:run in Backend/soumission) first.")
         return 1
 
     passed = failed = skipped = 0

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stop every service started by start-all.sh.
+# Stop every service started by scripts/start-all.sh.
 set -uo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
