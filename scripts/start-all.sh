@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
 #   Eureka peer1 (8761) and peer2 (8762)
-#   MS1 Challenges (8081), MS2 Participants (8082, 8092)
+#   MS1 Challenges (8081, 8091), MS2 Participants (8082, 8092)
 #   MS4 Evaluation (8084, 8087)
-#   MS3 Soumission (8083)
-#   MS5 Verification (8085)
+#   MS3 Soumission (8083, 8093)
+#   MS5 Verification (8085, 8095)
 #   MS6 Reputation (8086, 8096)
 set -euo pipefail
 
@@ -258,11 +258,22 @@ start_service ms5-verification "$REPO_ROOT/Backend/ms5-verification" 8085 ""
 start_service ms6-reputation-1 "$REPO_ROOT/Backend/ms6-reputation" 8086 "--server.port=8086"
 start_service ms6-reputation-2 "$REPO_ROOT/Backend/ms6-reputation" 8096 "--server.port=8096"
 
+# Fallback instances: wait for the primary first so Maven has finished its
+# build in the shared source directory before the second process starts.
 wait_service ms1-challenges "MS1 Challenges" 8081 || true
+start_service ms1-challenges-2 "$REPO_ROOT/Backend/ms1-challenges" 8091 "--server.port=8091"
+wait_service ms1-challenges-2 "MS1 Challenges fallback" 8091 || true
+
+wait_service ms3-soumission "MS3 Soumission" 8083 || true
+start_service ms3-soumission-2 "$REPO_ROOT/Backend/soumission" 8093 "--server.port=8093"
+wait_service ms3-soumission-2 "MS3 Soumission fallback" 8093 || true
+
+wait_service ms5-verification "MS5 Verification" 8085 || true
+start_service ms5-verification-2 "$REPO_ROOT/Backend/ms5-verification" 8095 "--server.port=8095"
+wait_service ms5-verification-2 "MS5 Verification fallback" 8095 || true
+
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
 wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8087 || true
-wait_service ms3-soumission "MS3 Soumission" 8083 || true
-wait_service ms5-verification "MS5 Verification" 8085 || true
 wait_service ms6-reputation-1 "MS6 Reputation 1" 8086 || true
 wait_service ms6-reputation-2 "MS6 Reputation 2" 8096 || true
 
@@ -271,6 +282,7 @@ info "services requested:"
 printf '  Eureka 8761     http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
 printf '  Eureka 8762     http://localhost:8762  (peer2, profile peer2)\n'
 printf '  MS1 (8081)      health http://localhost:8081/actuator/health  docs http://localhost:8081/swagger-ui.html\n'
+printf '  MS1 (8091)      fallback health http://localhost:8091/actuator/health\n'
 printf '  MS2 (8082)      health http://localhost:8082/actuator/health  docs http://localhost:8082/swagger-ui.html\n'
 printf '  MS2 (8092)      health http://localhost:8092/actuator/health\n'
 printf '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html\n'
@@ -278,7 +290,9 @@ printf '  MS6 (8096)      health http://localhost:8096/actuator/health  docs htt
 printf '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html\n'
 printf '  MS4 (8087)      health http://localhost:8087/actuator/health  docs http://localhost:8087/swagger-ui.html\n'
 printf '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html\n'
+printf '  MS3 (8093)      fallback health http://localhost:8093/actuator/health\n'
 printf '  MS5 (8085)      health http://localhost:8085/actuator/health  docs http://localhost:8085/swagger-ui.html\n'
+printf '  MS5 (8095)      fallback health http://localhost:8095/actuator/health\n'
 printf '  MS5 OpenAPI     http://localhost:8085/v3/api-docs  |  eureka http://localhost:8761/eureka/apps/MS5-VERIFICATION\n'
 printf '  MS5 requests    %s/Backend/ms5-verification/verifications.http\n' "$REPO_ROOT"
 printf '  Logs            %s\n' "$LOG_DIR"
