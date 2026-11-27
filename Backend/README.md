@@ -15,7 +15,8 @@ Tous les services backend exposent les endpoints `health`, `info` et `metrics` :
 
 | Service | Port | Endpoint de santé |
 | --- | --- | --- |
-| Eureka Server | 8761 | `http://localhost:8761/actuator/health` |
+| Eureka peer1 | 8761 | `http://localhost:8761/actuator/health` |
+| Eureka peer2 | 8762 | `http://localhost:8762/actuator/health` |
 | MS3 Soumission | 8083 | `http://localhost:8083/actuator/health` |
 | MS4 Évaluation (x2) | 8084 / 8087 | `http://localhost:8084/actuator/health` |
 | MS5 Vérification | 8085 | `http://localhost:8085/actuator/health` |

@@ -37,21 +37,25 @@ Java 21 + Spring Boot, Spring Cloud Gateway, Eureka, Keycloak (OIDC / JWT), Open
 | Jihed Ramedi | MS6 · Réputation |
 | Toute l'équipe | MS5 · Vérification, Eureka, Gateway, Keycloak, Docker, Frontend |
 
-## Découverte de services (Eureka) — 1 serveur
+## Découverte de services (Eureka) — 2 pairs répliqués
 
 | Composant | Port(s) | Nom dans Eureka |
 | --- | --- | --- |
-| Eureka Server | 8761 (`localhost`) | EUREKA-SERVER |
-| MS3 Soumissions | 8083 | MS3-SOUMISSIONS |
+| Eureka peer1 | 8761 (`localhost`) | EUREKA-SERVER |
+| Eureka peer2 | 8762 (`127.0.0.1`) | EUREKA-SERVER |
+| MS1 Challenges (x2) | 8081 / 8091 | MS1-CHALLENGES |
+| MS2 Participants (x2) | 8082 / 8092 | PARTICIPANTS |
+| MS3 Soumissions (x2) | 8083 / 8093 | MS3-SOUMISSIONS |
 | MS4 Évaluation (x2) | 8084 / 8087 | MS4-EVALUATION |
-| MS5 Vérification | 8085 | MS5-VERIFICATION |
+| MS5 Vérification (x2) | 8085 / 8095 | MS5-VERIFICATION |
 | MS6 Réputation (x2) | 8086 / 8096 | MS6-REPUTATION |
 
-- Le registre est **unique** : pas de réplication peer-to-peer, donc plus de second dashboard ni de
-  doublon `DOWN` sur un replica.
-- Chaque client déclare une seule zone :
-  `eureka.client.service-url.defaultZone=http://localhost:8761/eureka/`
-- Les MS les plus sollicités (MS4 et MS6) tournent en 2 instances sur des ports différents.
+- Les deux serveurs forment une **paire répliquée** : peer1 (`localhost`) et peer2 (`127.0.0.1`)
+  ont des hostnames différents, s'enregistrent l'un auprès de l'autre et échangent leur registre.
+- Chaque MS s'enregistre directement auprès des deux zones :
+  `eureka.client.service-url.defaultZone=http://localhost:8761/eureka/,http://localhost:8762/eureka/`
+  → les deux dashboards affichent tous les MS et toutes leurs instances.
+- Les MS les plus sollicités tournent en deux instances sur des ports différents.
 
 ### Lancement
 
@@ -60,10 +64,13 @@ scripts/start-all.sh        # Linux / macOS
 scripts/start-all.bat       # Windows
 ```
 
-Ou dans IntelliJ : `EurekaServerApplication` avec *Active profiles* = `peer1` (profil standalone),
+Ou dans IntelliJ : lancer `EurekaServerApplication` deux fois avec les profils `peer1` puis `peer2`,
 puis chaque microservice (2e instance : *VM options* `-Dserver.port=8096`).
 
-Dashboard : http://localhost:8761
+Dashboards : http://localhost:8761 et http://localhost:8762
+
+Vérification : `curl -s http://localhost:8761/eureka/apps` et
+`curl -s http://localhost:8762/eureka/apps` doivent lister les mêmes applications.
 
 ### Captures
 
