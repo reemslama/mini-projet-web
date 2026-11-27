@@ -1,6 +1,7 @@
 $kind: collection
 description: |-
-  Generated from contracts/ms1-challenges.openapi.yaml. MS1 has no implementation in this repository, so CI lints this collection but does not run it.
+  Based on contracts/ms1-challenges.openapi.yaml and run against Backend/ms1-challenges on port 8081.
+  Requests are kept flat because dependent requests must run in order.
 variables:
   baseUrl: http://localhost:8081
   challengeId: 00000000-0000-0000-0000-000000000001
