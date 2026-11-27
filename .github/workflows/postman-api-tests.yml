@@ -22,8 +22,12 @@ jobs:
           java-version: '21'
           cache: maven
 
+      # Install into a writable prefix: `npm install -g` tries to symlink a man
+      # page into /usr/local/share/man and fails on GitHub-hosted runners.
       - name: Install Postman CLI
-        run: npm install -g postman-cli@1.94.0
+        run: |
+          echo "$RUNNER_TEMP/postman-cli/node_modules/.bin" >> "$GITHUB_PATH"
+          npm install --prefix "$RUNNER_TEMP/postman-cli" --no-audit --no-fund postman-cli@1.94.0
 
       # Structural gate: fails the job on invalid v3 collection entities.
       - name: Lint collections
