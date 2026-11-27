@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Update the draft challenge.
+url: "{{baseUrl}}/api/challenges/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "Updated demo challenge",
+      "description": "Updated by Postman",
+      "enterpriseId": "{{enterpriseId}}",
+      "deadline": "2027-12-31T23:59:59Z",
+      "tags": [
+        "java"
+      ]
+    }
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+settings: {}
+order: 4000

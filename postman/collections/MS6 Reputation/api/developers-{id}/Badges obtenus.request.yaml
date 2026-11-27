@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Badges earned by the seeded developer.
+url: "{{baseUrl}}/api/developers/:id/badges"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{developerId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('returns a list', () => pm.expect(pm.response.json()).to.be.an('array'));
+settings: {}
+order: 2000

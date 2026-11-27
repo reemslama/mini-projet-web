@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Global ranking, filtered by skill.
+url: "{{baseUrl}}/api/rankings?skill=java&page=0&size=20"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: skill
+    value: java
+  - key: page
+    value: '0'
+  - key: size
+    value: '20'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const rankings = pm.response.json();
+      pm.test('ranking entries have ranks', () => pm.expect(rankings).to.be.an('array').that.is.not.empty);
+      pm.test('first entry shaped correctly', () => pm.expect(rankings[0]).to.have.property('rank'));
+settings: {}
+order: 3000

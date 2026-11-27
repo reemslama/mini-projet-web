@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Define the acceptance criteria used by MS5.
+url: "{{baseUrl}}/api/challenges/:id/acceptance-criteria"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    [
+      {
+        "id": "c1",
+        "description": "Unit tests pass",
+        "weight": 0.7,
+        "testCommand": "mvn test"
+      },
+      {
+        "id": "c2",
+        "description": "Coverage above 80%",
+        "weight": 0.3,
+        "testCommand": "mvn verify"
+      }
+    ]
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+settings: {}
+order: 6000

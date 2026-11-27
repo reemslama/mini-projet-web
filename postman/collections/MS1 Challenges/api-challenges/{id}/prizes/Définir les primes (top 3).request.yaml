@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  Define the top-3 prizes.
+url: "{{baseUrl}}/api/challenges/:id/prizes"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    [
+      {
+        "rank": 1,
+        "amount": 1000,
+        "currency": "EUR"
+      },
+      {
+        "rank": 2,
+        "amount": 500,
+        "currency": "EUR"
+      },
+      {
+        "rank": 3,
+        "amount": 200,
+        "currency": "EUR"
+      }
+    ]
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+settings: {}
+order: 8000

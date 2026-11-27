@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Create an expert through the implemented /experts/add endpoint.
+url: "{{baseUrl}}/experts/add"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "keycloakId": "postman-expert-1",
+      "displayName": "Postman Expert",
+      "domains": [
+        "java",
+        "spring"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const expert = pm.response.json();
+      pm.test('expert has an id', () => pm.expect(expert.id).to.be.a('string'));
+      pm.test('displayName matches', () => pm.expect(expert.displayName).to.eql('Postman Expert'));
+      pm.collectionVariables.set('expertId', expert.id);
+settings: {}
+order: 1000

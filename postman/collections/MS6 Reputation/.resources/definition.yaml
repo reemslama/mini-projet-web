@@ -1,0 +1,7 @@
+$kind: collection
+description: |-
+  Generated from contracts/ms6-reputation.openapi.yaml, then pointed at the fixed developer fixture loaded by DataInitializer (1111...). The event-ingest request generates a fresh challenge UUID per run.
+variables:
+  baseUrl: http://localhost:8086
+  developerId: 11111111-1111-1111-1111-111111111111
+  challengeId: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb

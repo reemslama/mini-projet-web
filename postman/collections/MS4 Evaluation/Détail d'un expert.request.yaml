@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Read the expert created by the previous request.
+url: "{{baseUrl}}/experts/:id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{expertId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const expert = pm.response.json();
+      pm.test('same expert', () => pm.expect(expert.id).to.eql(pm.collectionVariables.get('expertId')));
+      pm.test('domains preserved', () => pm.expect(expert.domains).to.include('java'));
+settings: {}
+order: 2000

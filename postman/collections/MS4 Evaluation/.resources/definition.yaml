@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  CONTRACT DRIFT: contracts/ms4-evaluation.openapi.yaml defines /api/experts, jury, rubrics, evaluations, leaderboard and winners, but the implementation only exposes expert CRUD under /experts/*. These requests target the real endpoints. Run with services on 8084 and MySQL on 3306.
+variables:
+  baseUrl: http://localhost:8084
+  expertId: 00000000-0000-0000-0000-000000000007

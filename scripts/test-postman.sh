@@ -7,8 +7,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 COLLECTIONS=(
+    "$ROOT_DIR/postman/collections/MS1 Challenges"
+    "$ROOT_DIR/postman/collections/MS2 Participants"
     "$ROOT_DIR/postman/collections/MS3 Soumissions"
+    "$ROOT_DIR/postman/collections/MS4 Evaluation"
     "$ROOT_DIR/postman/collections/MS5 Verification"
+    "$ROOT_DIR/postman/collections/MS6 Reputation"
 )
 
 log() {
@@ -89,9 +93,13 @@ show_menu() {
     echo "       POSTMAN COLLECTION LINTER"
     echo "======================================"
     echo
-    echo "  1) Lint MS3 Soumissions"
-    echo "  2) Lint MS5 Verification"
-    echo "  3) Lint ALL collections"
+    echo "  1) Lint MS1 Challenges (contract only)"
+    echo "  2) Lint MS2 Participants (contract only)"
+    echo "  3) Lint MS3 Soumissions"
+    echo "  4) Lint MS4 Evaluation"
+    echo "  5) Lint MS5 Verification"
+    echo "  6) Lint MS6 Reputation"
+    echo "  7) Lint ALL collections"
     echo "  0) Exit"
     echo
     echo "======================================"
@@ -101,10 +109,17 @@ usage() {
     cat <<EOF
 Usage: scripts/test-postman.sh [OPTION]
 
-  --all     Lint both collections (default when run without a terminal)
+  --all     Lint all six collections (default when run without a terminal)
+  --ms1     Lint the MS1 Challenges collection (contract only)
+  --ms2     Lint the MS2 Participants collection (contract only)
   --ms3     Lint the MS3 Soumissions collection
+  --ms4     Lint the MS4 Evaluation collection
   --ms5     Lint the MS5 Verification collection
+  --ms6     Lint the MS6 Reputation collection
   --help    Show this help
+
+This script only lints collections. Live runs need the services and MySQL;
+see postman/README.md and .github/workflows/postman-api-tests.yml.
 
 With no arguments and an interactive terminal, a menu is shown.
 EOF
@@ -122,9 +137,8 @@ interactive_menu() {
         fi
 
         case "$choice" in
-            1) lint_collection "${COLLECTIONS[0]}" ;;
-            2) lint_collection "${COLLECTIONS[1]}" ;;
-            3) lint_all ;;
+            1|2|3|4|5|6) lint_collection "${COLLECTIONS[$((choice - 1))]}" ;;
+            7) lint_all ;;
             0)
                 log "Exiting Postman Linter."
                 return 0
@@ -149,8 +163,12 @@ main() {
     if (( $# > 0 )); then
         case "$1" in
             --all)   lint_all ;;
-            --ms3)   lint_collection "${COLLECTIONS[0]}" ;;
-            --ms5)   lint_collection "${COLLECTIONS[1]}" ;;
+            --ms1)   lint_collection "${COLLECTIONS[0]}" ;;
+            --ms2)   lint_collection "${COLLECTIONS[1]}" ;;
+            --ms3)   lint_collection "${COLLECTIONS[2]}" ;;
+            --ms4)   lint_collection "${COLLECTIONS[3]}" ;;
+            --ms5)   lint_collection "${COLLECTIONS[4]}" ;;
+            --ms6)   lint_collection "${COLLECTIONS[5]}" ;;
             --help|-h) usage ;;
             *)
                 log "[ERROR] Unknown option: $1"

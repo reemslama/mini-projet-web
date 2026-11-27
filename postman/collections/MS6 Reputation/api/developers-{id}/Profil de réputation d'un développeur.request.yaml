@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Reputation of the seeded developer (20 for a passed submission + 100 for a won challenge).
+url: "{{baseUrl}}/api/developers/:id/reputation"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{developerId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      const profile = pm.response.json();
+      pm.test('profile belongs to fixture developer', () => pm.expect(profile.developerId).to.eql(pm.collectionVariables.get('developerId')));
+      pm.test('score includes seeded events', () => pm.expect(profile.score).to.be.at.least(120));
+settings: {}
+order: 1000

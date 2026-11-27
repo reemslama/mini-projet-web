@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Create a draft challenge; capture its id for the following requests.
+url: "{{baseUrl}}/api/challenges"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "Demo challenge",
+      "description": "Challenge created by the Postman collection",
+      "enterpriseId": "{{enterpriseId}}",
+      "deadline": "2027-12-31T23:59:59Z",
+      "tags": [
+        "java",
+        "spring"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      const challenge = pm.response.json();
+      pm.test('draft challenge returned', () => pm.expect(challenge.status).to.eql('DRAFT'));
+      pm.collectionVariables.set('challengeId', challenge.id);
+settings: {}
+order: 1000
