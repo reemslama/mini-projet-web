@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Search the challenge catalogue.
+url: "{{baseUrl}}/api/challenges?tag=java&status=PUBLISHED&page=0&size=20"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: tag
+    value: java
+  - key: status
+    value: PUBLISHED
+  - key: page
+    value: '0'
+  - key: size
+    value: '20'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('returns a list', () => pm.expect(pm.response.json()).to.be.an('array'));
+settings: {}
+order: 2000

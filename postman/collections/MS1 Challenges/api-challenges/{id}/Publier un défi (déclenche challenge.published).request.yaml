@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Publish the challenge.
+url: "{{baseUrl}}/api/challenges/:id/publish"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('status is PUBLISHED', () => pm.expect(pm.response.json().status).to.eql('PUBLISHED'));
+settings: {}
+order: 5000

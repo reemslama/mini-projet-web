@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Read the team.
+url: "{{baseUrl}}/api/teams/:id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{teamId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('same team', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('teamId')));
+settings: {}
+order: 4000

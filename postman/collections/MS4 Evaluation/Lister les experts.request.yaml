@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  List all experts.
+url: "{{baseUrl}}/experts/getAll"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('contains created expert', () => pm.expect(pm.response.json().map(e => e.id)).to.include(pm.collectionVariables.get('expertId')));
+settings: {}
+order: 3000

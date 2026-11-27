@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  Generated from contracts/ms2-participants.openapi.yaml. MS2 has no implementation in this repository, so CI lints this collection but does not run it.
+variables:
+  baseUrl: http://localhost:8082
+  developerId: 00000000-0000-0000-0000-000000000003
+  teamId: 00000000-0000-0000-0000-000000000004
+  challengeId: 00000000-0000-0000-0000-000000000005
+  applicationId: 00000000-0000-0000-0000-000000000006

@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Create a developer profile; capture its id.
+url: "{{baseUrl}}/api/developers"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "keycloakId": "postman-dev-1",
+      "displayName": "Postman Developer",
+      "email": "dev@example.com",
+      "skills": [
+        "java"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      const developer = pm.response.json();
+      pm.test('displayName matches', () => pm.expect(developer.displayName).to.eql('Postman Developer'));
+      pm.collectionVariables.set('developerId', developer.id);
+settings: {}
+order: 1000

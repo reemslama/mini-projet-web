@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Ingest a fresh event on a new challenge so it is not a duplicate.
+url: "{{baseUrl}}/api/reputation/events"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "type": "SUBMISSION_PASSED",
+      "developerId": "{{developerId}}",
+      "challengeId": "{{challengeId}}",
+      "weight": 20,
+      "occurredAt": "2026-01-01T00:00:00Z"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // MS6 ignores duplicate (developerId, challengeId, type) events.
+      // Use a fresh challenge UUID on every run so reruns stay green.
+      pm.collectionVariables.set('challengeId',
+        'cccccccc-cccc-cccc-cccc-' + Date.now().toString(16).padStart(12, '0').slice(-12));
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 202', () => pm.response.to.have.status(202));
+      pm.test('event applied', () => pm.expect(pm.response.json().status).to.eql('APPLIED'));
+settings: {}
+order: 4000

@@ -1,4 +1,4 @@
-name: Postman API tests (MS3 + MS5)
+name: Postman API tests (all services)
 
 # Local-only gates: no Postman account or POSTMAN_API_KEY is required.
 # Run evidence stays in this job's log and in the uploaded YAML reports.
@@ -11,7 +11,22 @@ on:
 jobs:
   api-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+
+    # MS4 uses the default datasource config: MySQL on 3306, root, empty password.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: forge_evaluation
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - uses: actions/checkout@v4
@@ -30,17 +45,28 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/postman-cli" --no-audit --no-fund postman-cli@1.94.0
 
       # Structural gate: fails the job on invalid v3 collection entities.
+      # MS1/MS2 have contracts but no implementation here, so they are lint-only.
       - name: Lint collections
         run: |
-          postman collection lint "postman/collections/MS3 Soumissions" -f error
-          postman collection lint "postman/collections/MS5 Verification" -f error
+          for collection in \
+            "postman/collections/MS1 Challenges" \
+            "postman/collections/MS2 Participants" \
+            "postman/collections/MS3 Soumissions" \
+            "postman/collections/MS4 Evaluation" \
+            "postman/collections/MS5 Verification" \
+            "postman/collections/MS6 Reputation"; do
+            postman collection lint "$collection" -f error
+          done
 
       # Real services, no mocks: MS5 needs ~2s for its async worker before /logs.
-      - name: Start MS3 and MS5
+      # Eureka is not started; the clients log warnings but serve HTTP normally.
+      - name: Start MS3, MS4, MS5 and MS6
         run: |
           nohup sh -c 'cd Backend/soumission && mvn -q spring-boot:run' > /tmp/ms3.log 2>&1 &
+          nohup sh -c 'cd Backend/ms4-evaluation && mvn -q spring-boot:run' > /tmp/ms4.log 2>&1 &
           nohup sh -c 'cd Backend/ms5-verification && mvn -q spring-boot:run' > /tmp/ms5.log 2>&1 &
-          for port in 8083 8085; do
+          nohup sh -c 'cd Backend/ms6-reputation && mvn -q spring-boot:run' > /tmp/ms6.log 2>&1 &
+          for port in 8083 8084 8085 8086; do
             for i in $(seq 1 120); do
               if curl -fsS "http://localhost:$port/actuator/health" > /dev/null; then
                 echo "service on $port is healthy"
@@ -60,10 +86,20 @@ jobs:
           postman collection run "postman/collections/MS3 Soumissions" \
             --delay-request 500 --no-report-events --output postman-reports/ms3
 
+      - name: Run MS4 collection
+        run: |
+          postman collection run "postman/collections/MS4 Evaluation" \
+            --delay-request 500 --no-report-events --output postman-reports/ms4
+
       - name: Run MS5 collection
         run: |
           postman collection run "postman/collections/MS5 Verification" \
             --delay-request 3000 --no-report-events --output postman-reports/ms5
+
+      - name: Run MS6 collection
+        run: |
+          postman collection run "postman/collections/MS6 Reputation" \
+            --delay-request 500 --no-report-events --output postman-reports/ms6
 
       - name: Upload run reports
         if: always()
@@ -76,7 +112,7 @@ jobs:
       - name: Service logs on failure
         if: failure()
         run: |
-          echo "=== MS3 ==="
-          tail -n 200 /tmp/ms3.log || true
-          echo "=== MS5 ==="
-          tail -n 200 /tmp/ms5.log || true
+          for service in ms3 ms4 ms5 ms6; do
+            echo "=== $service ==="
+            tail -n 200 "/tmp/$service.log" || true
+          done

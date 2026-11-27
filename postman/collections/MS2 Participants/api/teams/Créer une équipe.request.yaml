@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Create a team owned by the developer.
+url: "{{baseUrl}}/api/teams"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Postman Team",
+      "ownerId": "{{developerId}}",
+      "memberIds": [
+        "{{developerId}}"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', () => pm.response.to.have.status(201));
+      const team = pm.response.json();
+      pm.collectionVariables.set('teamId', team.id);
+settings: {}
+order: 3000

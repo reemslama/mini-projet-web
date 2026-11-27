@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Read the prizes.
+url: "{{baseUrl}}/api/challenges/:id/prizes"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: '{{challengeId}}'
+    disabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('returns three prizes', () => pm.expect(pm.response.json()).to.have.lengthOf(3));
+settings: {}
+order: 9000
