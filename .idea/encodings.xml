@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/Backend/api-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Backend/eureka-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Backend/ms1-challenges/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Backend/ms2-participants/eureka-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Backend/ms4-evaluation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Backend/ms5-verification/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Backend/ms6-reputation/src/main/java" charset="UTF-8" />
+  </component>
+</project>
