@@ -83,6 +83,25 @@ jobs:
             done
           done
 
+          # Fallback instances: start only after the primary is healthy so the
+          # two Maven processes do not build the same source directory at once.
+          nohup sh -c 'cd Backend/ms1-challenges && mvn -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8091' > /tmp/ms1-fallback.log 2>&1 &
+          nohup sh -c 'cd Backend/soumission && mvn -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8093' > /tmp/ms3-fallback.log 2>&1 &
+          nohup sh -c 'cd Backend/ms5-verification && mvn -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8095' > /tmp/ms5-fallback.log 2>&1 &
+          for port in 8091 8093 8095; do
+            for i in $(seq 1 120); do
+              if curl -fsS "http://localhost:$port/actuator/health" > /dev/null; then
+                echo "fallback service on $port is healthy"
+                break
+              fi
+              if [ "$i" -eq 120 ]; then
+                echo "fallback service on $port did not become healthy"
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
       # Behavioral gates. Exit codes are preserved: a failed pm.test fails the job.
       - name: Run MS1 collection
         run: |
