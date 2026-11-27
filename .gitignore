@@ -3,5 +3,5 @@
 /scripts/logs/
 /scripts/run/
 /postman-reports/
-.vscode
-.idea
+/.vscode
+/.idea
