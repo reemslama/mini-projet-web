@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Launch all backend services of the Arène project.
-#   Eureka (8761)
+#   Eureka peer1 (8761) + peer2 (8762)
 #   MS4 Evaluation (8084, 8087)
 #   MS3 Soumission (8083)
 #   MS5 Verification (8085)
+#   MS6 Reputation (8086, 8096)
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -189,23 +190,32 @@ if (( SKIP_DB == 0 )); then
 fi
 
 # Discovery server first, so clients can register as soon as it is up.
-start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 \
-    "--server.port=8761 --eureka.instance.hostname=eureka1 --eureka.client.service-url.defaultZone=http://localhost:8761/eureka/"
-wait_service eureka-1 "Eureka" 8761 || true
+# Two replicated peers: peer1 = localhost:8761, peer2 = 127.0.0.1:8762 (see application-peerX.properties)
+start_service eureka-1 "$ROOT_DIR/Backend/eureka-server" 8761 "--spring.profiles.active=peer1"
+start_service eureka-2 "$ROOT_DIR/Backend/eureka-server" 8762 "--spring.profiles.active=peer2"
+wait_service eureka-1 "Eureka peer1" 8761 || true
+wait_service eureka-2 "Eureka peer2" 8762 || true
 
 start_service ms4-evaluation-1 "$ROOT_DIR/Backend/ms4-evaluation" 8084 "--server.port=8084 $DB_DIALECT_ARG"
 start_service ms4-evaluation-2 "$ROOT_DIR/Backend/ms4-evaluation" 8087 "--server.port=8087 $DB_DIALECT_ARG"
 start_service ms3-soumission "$ROOT_DIR/Backend/soumission" 8083 ""
 start_service ms5-verification "$ROOT_DIR/Backend/ms5-verification" 8085 ""
+start_service ms6-reputation-1 "$ROOT_DIR/Backend/ms6-reputation" 8086 "--server.port=8086"
+start_service ms6-reputation-2 "$ROOT_DIR/Backend/ms6-reputation" 8096 "--server.port=8096"
 
 wait_service ms4-evaluation-1 "MS4 Evaluation 1" 8084 || true
 wait_service ms4-evaluation-2 "MS4 Evaluation 2" 8087 || true
 wait_service ms3-soumission "MS3 Soumission" 8083 || true
 wait_service ms5-verification "MS5 Verification" 8085 || true
+wait_service ms6-reputation-1 "MS6 Reputation 1" 8086 || true
+wait_service ms6-reputation-2 "MS6 Reputation 2" 8096 || true
 
 printf '\n'
 info "services requested:"
-printf '  Eureka          http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
+printf '  Eureka peer1    http://localhost:8761  (registry: http://localhost:8761/eureka/apps)\n'
+printf '  Eureka peer2    http://127.0.0.1:8762  (registry: http://127.0.0.1:8762/eureka/apps)\n'
+printf '  MS6 (8086)      health http://localhost:8086/actuator/health  docs http://localhost:8086/swagger-ui.html\n'
+printf '  MS6 (8096)      health http://localhost:8096/actuator/health  docs http://localhost:8096/swagger-ui.html\n'
 printf '  MS4 (8084)      health http://localhost:8084/actuator/health  docs http://localhost:8084/swagger-ui.html\n'
 printf '  MS4 (8087)      health http://localhost:8087/actuator/health  docs http://localhost:8087/swagger-ui.html\n'
 printf '  MS3 (8083)      health http://localhost:8083/actuator/health  docs http://localhost:8083/swagger-ui.html\n'
